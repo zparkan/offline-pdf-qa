@@ -1,0 +1,34 @@
+# محیط مجازی پایتون
+.venv/
+venv/
+
+# فایل‌های موقت پایتون
+__pycache__/
+*.py[cod]
+
+# تنظیمات محرمانه
+.env
+
+# فایل‌های مدل هوش مصنوعی
+*.bin
+*.gguf
+*.safetensors
+*.onnx
+*.pt
+*.pth
+
+# داده‌ها و خروجی‌های محلی
+data/uploads/
+data/processed/
+outputs/
+storage/
+cache/
+
+
+# تنظیمات محیط توسعه
+.vscode/
+.idea/
+
+# فایل‌های سیستمی
+.DS_Store
+*.pdf
