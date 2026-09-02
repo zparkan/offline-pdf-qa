@@ -1,34 +1,54 @@
-# محیط مجازی پایتون
-.venv/
-venv/
+# ----------------------------------------------------
+# تنظیمات اختصاصی پروژه RAG و فایل‌های حجیم
+# ----------------------------------------------------
 
-# فایل‌های موقت پایتون
-__pycache__/
-*.py[cod]
+# ۱. نادیده‌گرفتن فایل‌های دیتابیس برداری (FAISS)
+vector_store_data/*
+!vector_store_data/.gitkeep
 
-# تنظیمات محرمانه
+# ۲. نادیده‌گرفتن فایل‌های ورودی PDF حجیم یا فایل‌های تستی
+data/*
+!data/.gitkeep
+!data/sample.pdf
+
+# ۳. فایل‌های اجرایی، لاگ‌ها و متغیرهای محیطی
+*.faiss
+*.pkl
+*.index
 .env
 
-# فایل‌های مدل هوش مصنوعی
-*.bin
-*.gguf
-*.safetensors
-*.onnx
-*.pt
-*.pth
+# ۴. کش‌های مربوط به پایتون و تست
+__pycache__/
+*.py[cod]
+.pytest_cache/
 
-# داده‌ها و خروجی‌های محلی
-data/uploads/
-data/processed/
-outputs/
-storage/
-cache/
+# Virtual Environment (محیط مجازی شما و سایر فرمت‌ها)
+.venv/
+venv/
+env/
+ENV/
 
+# Python Cache & Bytecode (فایل‌های موقت اجرایی پایتون)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
 
-# تنظیمات محیط توسعه
-.vscode/
-.idea/
+# Testing Cache (کش ابزارهای تست)
+.pytest_cache/
+.coverage
+htmlcov/
 
-# فایل‌های سیستمی
-.DS_Store
-*.pdf
+# Vector Store Data (فایل‌های حجیم دیتابیس برداری فاوییس ذخیره نشوند، فقط ساختار پوشه بماند)
+vector_store_data/*
+!vector_store_data/.gitkeep
+
+# PDF inputs (فایل‌های دیتای کاربر نروند، فقط پوشه و سمپل بماند)
+data/*
+!data/.gitkeep
+!data/sample.pdf
+
+# VS Code & Environment variables
+.env
+.vscode/*
+!.vscode/settings.json
