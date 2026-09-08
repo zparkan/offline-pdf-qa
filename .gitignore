@@ -52,3 +52,7 @@ data/*
 .env
 .vscode/*
 !.vscode/settings.json
+chroma_storage/*
+
+models/
+
