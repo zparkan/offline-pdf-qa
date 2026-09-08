@@ -26,7 +26,7 @@ class Embedder:
     _instance: Embedder | None = None
 
     def __init__(self) -> None:
-        model_path = Path(config.MODELS_DIR) / config.EMBEDDING_MODEL_NAME
+        model_path = Path(config.MODELS_DIR) / config.EMBEDDING_MODEL_KEY
         load_target = (
             str(model_path) if model_path.exists() else config.EMBEDDING_MODEL_NAME
         )

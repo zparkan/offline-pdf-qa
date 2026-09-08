@@ -25,7 +25,7 @@ AVAILABLE_MODELS = {
 
 # اگر EMBEDDING_MODEL ست نشده باشه، از small استفاده می‌کنه
 _model_key = os.environ.get("EMBEDDING_MODEL", "small")
-
+EMBEDDING_MODEL_KEY: str = _model_key   # مثلا "small" یا "large" — برای پیدا کردن مسیر پوشه محلی
 if _model_key not in AVAILABLE_MODELS:
     raise ValueError(
         f"مدل '{_model_key}' معتبر نیست. "
