@@ -9,7 +9,9 @@ DATABASE_PATH = DATABASE_DIR / "chat_history.db"
 
 
 def get_connection():
-    return sqlite3.connect(DATABASE_PATH)
+    connection = sqlite3.connect(DATABASE_PATH)
+    connection.execute("PRAGMA foreign_keys = ON")
+    return connection
 
 
 def create_tables():
@@ -32,10 +34,7 @@ def create_tables():
             role TEXT NOT NULL,
             content TEXT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-            FOREIGN KEY (chat_id)
-                REFERENCES chats(id)
-                ON DELETE CASCADE
+            FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE
         )
     """)
 
@@ -43,6 +42,104 @@ def create_tables():
     connection.close()
 
 
-if __name__ == "__main__":
-    create_tables()
-    print("Database and tables created successfully.")
+def create_chat(title="New Chat"):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute(
+        """
+        INSERT INTO chats (title)
+        VALUES (?)
+        """,
+        (title,)
+    )
+
+    chat_id = cursor.lastrowid
+
+    connection.commit()
+    connection.close()
+
+    return chat_id
+
+
+def add_message(chat_id, role, content):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute(
+        """
+        INSERT INTO messages (chat_id, role, content)
+        VALUES (?, ?, ?)
+        """,
+        (chat_id, role, content)
+    )
+
+    cursor.execute(
+        """
+        UPDATE chats
+        SET updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+        """,
+        (chat_id,)
+    )
+
+    connection.commit()
+    connection.close()
+
+
+def get_chats():
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute(
+        """
+        SELECT id, title, created_at, updated_at
+        FROM chats
+        ORDER BY updated_at DESC
+        """
+    )
+
+    chats = cursor.fetchall()
+
+    connection.close()
+
+    return chats
+
+
+def get_messages(chat_id):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute(
+        """
+        SELECT id, chat_id, role, content, created_at
+        FROM messages
+        WHERE chat_id = ?
+        ORDER BY id ASC
+        """,
+        (chat_id,)
+    )
+
+    messages = cursor.fetchall()
+
+    connection.close()
+
+    return messages
+
+
+def delete_chat(chat_id):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute(
+        """
+        DELETE FROM chats
+        WHERE id = ?
+        """,
+        (chat_id,)
+    )
+
+    connection.commit()
+    connection.close()
+
+create_tables()
