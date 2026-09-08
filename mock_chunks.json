@@ -6,8 +6,7 @@
     "text": "این گزارش به بررسی روش‌های پردازش زبان طبیعی فارسی می‌پردازد. هدف اصلی، ارائه‌ی",
     "page_number": 1,
     "char_start": 0,
-    "char_end": 80,
-    "token_count": 13
+    "char_end": 80
   },
   {
     "chunk_id": "doc_0001_c001",
@@ -16,8 +15,7 @@
     "text": ". هدف اصلی، ارائه‌ی یک چارچوب عملی برای استخراج اطلاعات از اسناد اداری است. نویس",
     "page_number": 1,
     "char_start": 60,
-    "char_end": 140,
-    "token_count": 15
+    "char_end": 140
   },
   {
     "chunk_id": "doc_0001_c002",
@@ -26,8 +24,7 @@
     "text": "سناد اداری است. نویسنده در ابتدا پیشینه‌ی موضوع را مرور می‌کند.",
     "page_number": 1,
     "char_start": 120,
-    "char_end": 183,
-    "token_count": 11
+    "char_end": 183
   },
   {
     "chunk_id": "doc_0001_c003",
@@ -36,8 +33,7 @@
     "text": "در بخش دوم، نویسنده استدلال می‌کند که مدل‌های سبک‌وزن برای اجرای آفلاین مناسب‌تر",
     "page_number": 2,
     "char_start": 0,
-    "char_end": 80,
-    "token_count": 13
+    "char_end": 80
   },
   {
     "chunk_id": "doc_0001_c004",
@@ -46,8 +42,7 @@
     "text": "جرای آفلاین مناسب‌ترند، زیرا محدودیت سخت‌افزاری کاربران نهایی را رعایت می‌کنند.",
     "page_number": 2,
     "char_start": 60,
-    "char_end": 140,
-    "token_count": 11
+    "char_end": 140
   },
   {
     "chunk_id": "doc_0001_c005",
@@ -56,8 +51,7 @@
     "text": "ی را رعایت می‌کنند. این استدلال بر پایه‌ی مقایسه‌ی مصرف حافظه در سه مدل مختلف بن",
     "page_number": 2,
     "char_start": 120,
-    "char_end": 200,
-    "token_count": 16
+    "char_end": 200
   },
   {
     "chunk_id": "doc_0001_c006",
@@ -66,8 +60,7 @@
     "text": "ه در سه مدل مختلف بنا شده است.",
     "page_number": 2,
     "char_start": 180,
-    "char_end": 210,
-    "token_count": 8
+    "char_end": 210
   },
   {
     "chunk_id": "doc_0001_c007",
@@ -76,8 +69,7 @@
     "text": "نتیجه‌گیری گزارش نشان می‌دهد که ترکیب چانک‌بندی همپوشان با مدل‌های embedding چند",
     "page_number": 3,
     "char_start": 0,
-    "char_end": 80,
-    "token_count": 12
+    "char_end": 80
   },
   {
     "chunk_id": "doc_0001_c008",
@@ -86,8 +78,7 @@
     "text": "دل‌های embedding چندزبانه، دقت بازیابی را نسبت به روش پایه به میزان محسوسی افزای",
     "page_number": 3,
     "char_start": 60,
-    "char_end": 140,
-    "token_count": 14
+    "char_end": 140
   },
   {
     "chunk_id": "doc_0001_c009",
@@ -96,8 +87,7 @@
     "text": "ه میزان محسوسی افزایش می‌دهد.",
     "page_number": 3,
     "char_start": 120,
-    "char_end": 149,
-    "token_count": 5
+    "char_end": 149
   },
   {
     "chunk_id": "doc_0002_c000",
@@ -106,8 +96,7 @@
     "text": "این مقاله دو رویکرد متفاوت برای خلاصه‌سازی اسناد بلند را مقایسه می‌کند: روش استخ",
     "page_number": 1,
     "char_start": 0,
-    "char_end": 80,
-    "token_count": 14
+    "char_end": 80
   },
   {
     "chunk_id": "doc_0002_c001",
@@ -116,8 +105,7 @@
     "text": "یسه می‌کند: روش استخراجی و روش تولیدی.",
     "page_number": 1,
     "char_start": 60,
-    "char_end": 98,
-    "token_count": 7
+    "char_end": 98
   },
   {
     "chunk_id": "doc_0002_c002",
@@ -126,8 +114,7 @@
     "text": "نتایج آزمایش‌ها نشان می‌دهد روش تولیدی در حفظ پیوستگی معنایی برتری دارد، اما روش",
     "page_number": 2,
     "char_start": 0,
-    "char_end": 80,
-    "token_count": 14
+    "char_end": 80
   },
   {
     "chunk_id": "doc_0002_c003",
@@ -136,7 +123,6 @@
     "text": "برتری دارد، اما روش استخراجی از نظر سرعت اجرا مناسب‌تر سامانه‌های آفلاین است.",
     "page_number": 2,
     "char_start": 60,
-    "char_end": 138,
-    "token_count": 13
+    "char_end": 138
   }
 ]

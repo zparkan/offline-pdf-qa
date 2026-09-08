@@ -31,7 +31,6 @@ class DocumentChunk:
     page_number: int        # شماره صفحه مبدا - الزامی برای citation
     char_start: int          # موقعیت شروع در متن اصلی صفحه
     char_end: int             # موقعیت پایان در متن اصلی صفحه
-    token_count: int         # تعداد تقریبی توکن، برای مدیریت context مدل embedding
 
     def to_dict(self) -> dict:
         return asdict(self)

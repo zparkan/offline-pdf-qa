@@ -3,10 +3,10 @@
 # فقط هنگام تغییر مدل امبدینگ اجرا کنید
 
 import chromadb
-from config import CHROMA_DB_PATH, COLLECTION_NAME
+from config import CHROMA_DIR
 
 def reset_all_collections():
-    client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
+    client = chromadb.PersistentClient(path=CHROMA_DIR)
     
     existing = client.list_collections()
     for col in existing:
