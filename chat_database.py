@@ -2,7 +2,10 @@ import sqlite3
 from pathlib import Path
 
 
-DATABASE_PATH = Path("chat_history.db")
+DATABASE_DIR = Path("database")
+DATABASE_DIR.mkdir(exist_ok=True)
+
+DATABASE_PATH = DATABASE_DIR / "chat_history.db"
 
 
 def get_connection():
