@@ -1,42 +1,38 @@
 import sqlite3
 from pathlib import Path
 from contextlib import contextmanager
-
-
+ 
+ 
 # ============================================================
 # Database Path
 # ============================================================
-
-# مسیر اصلی فایل پروژه
+ 
 BASE_DIR = Path(__file__).resolve().parent
-
-# پوشه دیتابیس
 DATABASE_DIR = BASE_DIR / "database"
 DATABASE_DIR.mkdir(exist_ok=True)
-
-# فایل دیتابیس
 DATABASE_PATH = DATABASE_DIR / "chat_history.db"
-
-# پوشه‌ای که خودِ فایل‌های PDF آپلودی (نه دیتابیس، خودِ فایل) توش ذخیره می‌شن
+ 
 UPLOADS_DIR = BASE_DIR / "uploaded_files"
 UPLOADS_DIR.mkdir(exist_ok=True)
-
-
+ 
+DEFAULT_CHAT_COLOR = "#AEC6CF"  # آبی آسمانی پاستلی، پیش‌فرض چت‌های قدیمی
+ 
+ 
 # ============================================================
 # Database Connection
 # ============================================================
-
+ 
 @contextmanager
 def get_connection():
     """
     Context manager برای اتصال به دیتابیس SQLite.
     commit/rollback و close به صورت خودکار مدیریت می‌شن.
     """
-
+ 
     connection = sqlite3.connect(DATABASE_PATH)
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys = ON")
-
+ 
     try:
         yield connection
         connection.commit()
@@ -45,39 +41,40 @@ def get_connection():
         raise
     finally:
         connection.close()
-
-
+ 
+ 
 # ============================================================
 # Create Tables
 # ============================================================
-
+ 
 def create_tables():
     """
-    ایجاد جداول مورد نیاز در صورت عدم وجود
+    ایجاد جداول مورد نیاز در صورت عدم وجود.
     """
-
+ 
     with get_connection() as conn:
-
-        conn.executescript("""
+ 
+        conn.executescript(f"""
             CREATE TABLE IF NOT EXISTS chats (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 title TEXT NOT NULL,
+                color TEXT NOT NULL DEFAULT '{DEFAULT_CHAT_COLOR}',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
-
+ 
             CREATE TABLE IF NOT EXISTS messages (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 chat_id INTEGER NOT NULL,
                 role TEXT NOT NULL,
                 content TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
+ 
                 FOREIGN KEY (chat_id)
                     REFERENCES chats(id)
                     ON DELETE CASCADE
             );
-
+ 
             CREATE TABLE IF NOT EXISTS files (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 chat_id INTEGER NOT NULL,
@@ -85,34 +82,45 @@ def create_tables():
                 stored_path TEXT NOT NULL,
                 status TEXT NOT NULL DEFAULT 'pending',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
+ 
                 FOREIGN KEY (chat_id)
                     REFERENCES chats(id)
                     ON DELETE CASCADE
             );
-
+ 
             CREATE INDEX IF NOT EXISTS idx_messages_chat_id
             ON messages(chat_id);
-
+ 
             CREATE INDEX IF NOT EXISTS idx_files_chat_id
             ON files(chat_id);
         """)
-
-
+ 
+ 
 # ============================================================
 # Chat Operations
 # ============================================================
-
-def create_chat(title="New Chat"):
+ 
+def create_chat(title="New Chat", color=None):
+    """
+    ایجاد یک چت جدید.
+ 
+    Args:
+        title: اسم چت (نباید خالی باشه؛ این اعتبارسنجی سمت UI انجام می‌شه)
+        color: کد رنگ هگز (مثلاً "#AEC6CF"). اگه داده نشه، رنگ پیش‌فرض
+               استفاده می‌شه.
+    """
+    if color is None:
+        color = DEFAULT_CHAT_COLOR
+ 
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
-            "INSERT INTO chats (title) VALUES (?)",
-            (title,)
+            "INSERT INTO chats (title, color) VALUES (?, ?)",
+            (title, color)
         )
         return cursor.lastrowid
-
-
+ 
+ 
 def get_chats():
     with get_connection() as conn:
         cursor = conn.cursor()
@@ -122,16 +130,16 @@ def get_chats():
             ORDER BY updated_at DESC
         """)
         return [dict(row) for row in cursor.fetchall()]
-
-
+ 
+ 
 def get_chat_by_id(chat_id):
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM chats WHERE id = ?", (chat_id,))
         row = cursor.fetchone()
         return dict(row) if row else None
-
-
+ 
+ 
 def rename_chat(chat_id, new_title):
     with get_connection() as conn:
         conn.execute(
@@ -142,24 +150,17 @@ def rename_chat(chat_id, new_title):
             """,
             (new_title, chat_id)
         )
-
-
+ 
+ 
 def delete_chat(chat_id):
-    """
-    حذف یک چت.
-    به دلیل ON DELETE CASCADE، پیام‌ها و فایل‌های این چت هم از دیتابیس
-    حذف می‌شن. اما توجه: خودِ فایل فیزیکی PDF روی دیسک با این تابع
-    پاک نمی‌شه (چون این تابع فقط دیتابیسه) — برای اون از delete_file
-    قبل از حذف چت استفاده کن، یا در لایه‌ی بالاتر (UI) دستی پاکش کن.
-    """
     with get_connection() as conn:
         conn.execute("DELETE FROM chats WHERE id = ?", (chat_id,))
-
-
+ 
+ 
 # ============================================================
 # Message Operations
 # ============================================================
-
+ 
 def add_message(chat_id, role, content):
     with get_connection() as conn:
         conn.execute(
@@ -177,8 +178,8 @@ def add_message(chat_id, role, content):
             """,
             (chat_id,)
         )
-
-
+ 
+ 
 def get_messages(chat_id):
     with get_connection() as conn:
         cursor = conn.cursor()
@@ -192,24 +193,13 @@ def get_messages(chat_id):
             (chat_id,)
         )
         return [dict(row) for row in cursor.fetchall()]
-
-
+ 
+ 
 # ============================================================
 # File Operations
 # ============================================================
-# چرا stored_path جدا از filename ذخیره می‌شه؟
-# چون ممکنه دو تا چت مختلف، فایلی با اسم یکسان (مثلاً "گزارش.pdf")
-# آپلود کنن. filename برای نمایش به کاربره، stored_path مسیر واقعی
-# و یکتای فایل روی دیسکه (که در ادامه با chat_id و id بهش یکتا بودن
-# می‌دیم) تا فایل‌های چت‌های مختلف با هم تداخل نکنن.
-
+ 
 def add_file(chat_id, filename, stored_path, status="pending"):
-    """
-    ثبت یک فایل جدید برای یک چت مشخص.
-
-    Returns:
-        int: شناسه فایل ایجاد شده
-    """
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
@@ -220,12 +210,9 @@ def add_file(chat_id, filename, stored_path, status="pending"):
             (chat_id, filename, stored_path, status)
         )
         return cursor.lastrowid
-
-
+ 
+ 
 def get_files(chat_id):
-    """
-    دریافت تمام فایل‌های مربوط به یک چت (فقط همون چت، نه بقیه).
-    """
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
@@ -238,44 +225,33 @@ def get_files(chat_id):
             (chat_id,)
         )
         return [dict(row) for row in cursor.fetchall()]
-
-
+ 
+ 
 def update_file_status(file_id, status):
-    """
-    آپدیت وضعیت پردازش یک فایل.
-    این تابع بعداً توسط ماژول پردازش PDF (فاطمه) یا امبدینگ (زینب)
-    صدا زده می‌شه تا وضعیت از pending -> processing -> done تغییر کنه.
-    """
     with get_connection() as conn:
         conn.execute(
             "UPDATE files SET status = ? WHERE id = ?",
             (status, file_id)
         )
-
-
+ 
+ 
 def delete_file(file_id):
-    """
-    حذف یک فایل از دیتابیس.
-    توجه: فایل فیزیکی روی دیسک رو پاک نمی‌کنه؛ مسیرش رو برمی‌گردونه
-    تا لایه‌ی بالاتر (UI) خودش os.remove() کنه — چون دیتابیس نباید
-    مستقیم درگیر فایل‌سیستم بشه (جداسازی مسئولیت‌ها).
-    """
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT stored_path FROM files WHERE id = ?", (file_id,))
         row = cursor.fetchone()
         conn.execute("DELETE FROM files WHERE id = ?", (file_id,))
         return row["stored_path"] if row else None
-
-
+ 
+ 
 # ============================================================
 # Initialize Database
 # ============================================================
-
+ 
 def initialize_database():
     create_tables()
-
-
+ 
+ 
 if __name__ == "__main__":
     initialize_database()
     print("Database initialized successfully.")
