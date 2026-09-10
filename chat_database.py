@@ -1,5 +1,6 @@
 import sqlite3
 from pathlib import Path
+from contextlib import contextmanager
 
 
 # ============================================================
@@ -21,9 +22,20 @@ DATABASE_PATH = DATABASE_DIR / "chat_history.db"
 # Database Connection
 # ============================================================
 
+@contextmanager
 def get_connection():
     """
-    ایجاد اتصال به دیتابیس SQLite
+    Context manager برای اتصال به دیتابیس SQLite.
+
+    نکته مهم: قبلاً این تابع فقط sqlite3.connect() رو برمی‌گردوند و
+    با "with get_connection() as conn:" فقط commit/rollback خودکار
+    انجام می‌شد، ولی خودِ connection هیچ‌وقت close نمی‌شد.
+    الان با @contextmanager، هم commit/rollback و هم close به صورت
+    خودکار و تضمین‌شده (حتی در صورت بروز خطا) انجام می‌شه.
+
+    نحوه استفاده (بدون تغییر نسبت به قبل):
+        with get_connection() as conn:
+            conn.execute(...)
     """
 
     connection = sqlite3.connect(DATABASE_PATH)
@@ -34,7 +46,14 @@ def get_connection():
     # فعال کردن Foreign Key
     connection.execute("PRAGMA foreign_keys = ON")
 
-    return connection
+    try:
+        yield connection
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+    finally:
+        connection.close()
 
 
 # ============================================================
@@ -116,6 +135,44 @@ def get_chats():
         """)
 
         return [dict(row) for row in cursor.fetchall()]
+
+
+def get_chat_by_id(chat_id):
+    """
+    دریافت اطلاعات یک چت مشخص (مثلاً برای نمایش عنوانش در UI).
+
+    Returns:
+        dict یا None اگر چتی با این id پیدا نشد.
+    """
+
+    with get_connection() as conn:
+
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "SELECT * FROM chats WHERE id = ?",
+            (chat_id,)
+        )
+
+        row = cursor.fetchone()
+        return dict(row) if row else None
+
+
+def rename_chat(chat_id, new_title):
+    """
+    تغییر عنوان یک چت (مثلاً وقتی کاربر از UI اسم چت رو ویرایش می‌کنه).
+    """
+
+    with get_connection() as conn:
+
+        conn.execute(
+            """
+            UPDATE chats
+            SET title = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+            """,
+            (new_title, chat_id)
+        )
 
 
 def delete_chat(chat_id):
