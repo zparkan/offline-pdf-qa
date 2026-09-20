@@ -1,295 +1,470 @@
-"""
-app.py
-----------------------------------
-رابط کاربری (M-03) — نسخه چهارم
-
-اضافه شده نسبت به نسخه قبل:
-  - قبل از ساخت چت جدید، یک پنجره‌ی modal (st.dialog) باز می‌شه
-  - وارد کردن اسم چت اجباریه؛ دکمه‌ی «ساخت چت» تا وقتی اسم خالیه
-    غیرفعال (disabled) می‌مونه
-  - انتخاب رنگ از بین ۸ رنگ پاستلی (به شکل دایره‌های رنگی)
-  - رنگ انتخابی به صورت یک نقطه‌ی رنگی کنار اسم چت در سایدبار
-    نمایش داده می‌شه
-"""
-
 import os
-import streamlit as st
+from nicegui import ui, app
 import chat_database as db
 
-st.set_page_config(page_title="دستیار هوشمند PDF", layout="wide")
-
+# ۱. راه‌اندازی دیتابیس
 db.initialize_database()
 
-
-# ============================================================
-# پالت رنگ‌های پاستلی برای انتخاب چت
-# ============================================================
-# هر آیتم: (اسم فارسی رنگ برای نمایش/دیباگ، کد هگز)
-
 PASTEL_COLORS = [
-    ("صورتی", "#FADADD"),
-    ("آبی آسمانی", "#AEC6CF"),
-    ("سبز نعنایی", "#B5EAD7"),
-    ("زرد کِرِم", "#FFF5BA"),
-    ("بنفش کمرنگ", "#C7CEEA"),
-    ("هلویی", "#FFDAB9"),
-    ("قرمز ملایم", "#FFB3B3"),
-    ("فیروزه‌ای", "#B2F7EF"),
+    ("صورتی نیون", "#FF75C3"),
+    ("آبی مدرن", "#00F5D4"),
+    ("سبز زمردی", "#2EC4B6"),
+    ("زرد کهکشانی", "#FEE440"),
+    ("بنفش برقی", "#7B2CBF"),
+    ("مرجانی", "#FF9F1C"),
+    ("قرمز سرخابی", "#E63946"),
+    ("فیروزه‌ای", "#00BBF9"),
 ]
 
 
 # ============================================================
-# استایل سفارشی
+# راهنمای استفاده (دیالوگ مشترک بین همه‌ی صفحات)
 # ============================================================
-
-st.markdown(
+def open_help_dialog():
     """
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap');
-
-    html, body, [class*="css"], .stMarkdown, .stButton, .stChatMessage {
-        font-family: 'Vazirmatn', sans-serif !important;
-    }
-
-    h1 { font-weight: 700 !important; letter-spacing: -0.5px; }
-
-    section[data-testid="stSidebar"] button {
-        border-radius: 10px !important;
-        text-align: right !important;
-    }
-
-    [data-testid="stFileUploaderDropzone"] {
-        border-radius: 12px !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-
-# ============================================================
-# session_state
-# ============================================================
-
-if "active_chat_id" not in st.session_state:
-    st.session_state.active_chat_id = None
-
-if "uploader_key_counter" not in st.session_state:
-    st.session_state.uploader_key_counter = 0
-
-if "new_chat_color" not in st.session_state:
-    st.session_state.new_chat_color = PASTEL_COLORS[0][1]
-
-
-# ============================================================
-# پنجره‌ی مودال ساخت چت جدید
-# ============================================================
-# نکته مهم درباره st.dialog:
-# تابعی که با @st.dialog تزئین شده، وقتی "صدا زده بشه" (نه وقتی تعریف
-# می‌شه) یه پنجره‌ی modal روی کل صفحه باز می‌کنه. تا وقتی داخل این
-# پنجره st.rerun() صدا نزنیم، پنجره باز می‌مونه و بین تعامل‌های مختلف
-# (مثل کلیک روی رنگ‌ها) بسته نمی‌شه. st.rerun() تنها جایی صدا زده
-# می‌شه که واقعاً می‌خوایم پنجره بسته بشه (یعنی موقع ثبت نهایی چت).
-
-@st.dialog("ساخت چت جدید")
-def open_new_chat_dialog():
-    chat_name = st.text_input(
-        "اسم چت",
-        placeholder="مثلاً: پروژه پایان‌نامه",
-        key="new_chat_name_input",
-    )
-    st.caption("این فیلد اجباریه — تا خالیه، دکمه‌ی ساخت غیرفعاله.")
-
-    st.write("رنگ چت را انتخاب کن:")
-
-    cols = st.columns(4)
-    for i, (color_name, hex_code) in enumerate(PASTEL_COLORS):
-        with cols[i % 4]:
-            is_selected = st.session_state.new_chat_color == hex_code
-            border = "3px solid #333333" if is_selected else "3px solid transparent"
-
-            st.markdown(
-                f"""
-                <div style="
-                    width:44px; height:44px; border-radius:50%;
-                    background-color:{hex_code};
-                    border:{border};
-                    margin: 4px auto;
-                "></div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-            btn_label = "✓" if is_selected else "انتخاب"
-            if st.button(btn_label, key=f"color_choice_{i}", use_container_width=True):
-                # عمداً st.rerun() صدا نمی‌زنیم؛ خودِ کلیک روی دکمه باعث
-                # rerun طبیعی می‌شه و چون پنجره از قبل باز بوده، باز می‌مونه.
-                st.session_state.new_chat_color = hex_code
-
-    st.divider()
-
-    name_is_valid = bool(chat_name and chat_name.strip())
-
-    if st.button(
-        "✅ ساخت چت",
-        use_container_width=True,
-        type="primary",
-        disabled=not name_is_valid,
+    راهنمای استفاده از برنامه. تابع جدا شد چون هم توی صفحه‌ی گالری هم
+    توی صفحه‌ی چت لازمه، و نمی‌خوایم کدش تکرار بشه.
+    """
+    with ui.dialog() as dialog, ui.card().classes(
+        'bg-slate-900 text-slate-100 w-full max-w-xl border border-slate-800 p-6 rounded-2xl'
     ):
-        new_id = db.create_chat(
-            title=chat_name.strip(),
-            color=st.session_state.new_chat_color,
-        )
-        st.session_state.active_chat_id = new_id
-        st.session_state.uploader_key_counter = 0
-        st.session_state.new_chat_color = PASTEL_COLORS[0][1]  # ریست برای دفعه بعد
-        st.rerun()  # اینجا پنجره بسته می‌شه و چت جدید نمایش داده می‌شه
+        with ui.row().classes('w-full justify-between items-center mb-2'):
+            ui.label('📖 راهنمای استفاده').classes('text-xl font-bold')
+            ui.button(icon='close', on_click=dialog.close).props('flat round color=grey size=sm')
+
+        ui.separator().classes('bg-slate-800 mb-2')
+
+        with ui.column().classes('w-full gap-1'):
+            with ui.expansion('۱. ساخت گفتگوی جدید', icon='add_circle').classes('w-full text-slate-200'):
+                ui.label(
+                    'از صفحه‌ی اصلی روی «گفتگوی جدید» بزن، یه اسم و یه رنگ برای '
+                    'گفتگو انتخاب کن. هر گفتگو کاملاً مستقل از بقیه‌ست: فایل‌ها و '
+                    'پیام‌های هر گفتگو فقط مخصوص همون گفتگو می‌مونن.'
+                ).classes('text-sm text-slate-400 leading-relaxed')
+
+            with ui.expansion('۲. بارگذاری اسناد PDF', icon='upload_file').classes('w-full text-slate-200'):
+                ui.label(
+                    'داخل هر گفتگو، از ستون «اسناد این گفتگو» فایل‌های PDF مورد نظرت '
+                    'رو آپلود کن. می‌تونی چند فایل داشته باشی و هر کدوم رو جدا حذف '
+                    'کنی. فقط فرمت PDF پذیرفته می‌شه.'
+                ).classes('text-sm text-slate-400 leading-relaxed')
+
+            with ui.expansion('۳. پرسیدن سوال', icon='chat').classes('w-full text-slate-200'):
+                ui.label(
+                    'بعد از بارگذاری حداقل یک فایل، سوالت رو توی کادر پایین بنویس. '
+                    'اگر هنوز فایلی بارگذاری نکرده باشی، سیستم بهت یادآوری می‌کنه '
+                    'که اول باید سند آپلود کنی.'
+                ).classes('text-sm text-slate-400 leading-relaxed')
+
+            with ui.expansion('۴. مشاهده‌ی مرجع پاسخ', icon='find_in_page').classes('w-full text-slate-200'):
+                ui.label(
+                    'کنار هر پاسخ، شماره‌ی صفحه‌ای که اطلاعات ازش استخراج شده نشون '
+                    'داده می‌شه. با کلیک روش می‌تونی همون بخش از سند اصلی رو ببینی.'
+                ).classes('text-sm text-slate-400 leading-relaxed')
+
+            with ui.expansion('۵. تغییر نام / حذف گفتگو', icon='edit').classes('w-full text-slate-200'):
+                ui.label(
+                    'از دکمه‌ی مداد بالای هر گفتگو می‌تونی اسمش رو عوض کنی. برای '
+                    'حذف کامل یه گفتگو (همراه با تمام فایل‌ها و پیام‌هاش)، از دکمه‌ی '
+                    'زباله‌دان روی کارتش توی صفحه‌ی اصلی استفاده کن.'
+                ).classes('text-sm text-slate-400 leading-relaxed')
+
+        with ui.row().classes('w-full justify-end mt-3'):
+            ui.button('متوجه شدم', on_click=dialog.close).props('unelevated color=primary')
+
+    dialog.open()
 
 
 # ============================================================
-# سایدبار: لیست چت‌ها
+# صفحه اول: گالری گفتگوها (رووت /)
 # ============================================================
+@ui.page('/')
+def gallery_page():
+    ui.query('body').classes('bg-slate-950 text-slate-100 font-sans dir-rtl min-h-screen')
 
-with st.sidebar:
-    st.title("💬 چت‌ها")
+    selected_color = {'hex': PASTEL_COLORS[0][1]}
 
-    if st.button("➕ چت جدید", use_container_width=True):
-        open_new_chat_dialog()
+    # هدر صفحه گالری
+    with ui.header().classes('bg-slate-900/80 backdrop-blur-md p-4 justify-between items-center border-b border-slate-800 sticky top-0 z-50'):
+        with ui.row().classes('items-center gap-3'):
+            ui.icon('space_dashboard', size='32px').classes('text-sky-400')
+            ui.label('📚 دستیار هوشمند اسناد').classes('text-2xl font-black text-slate-100')
 
-    st.divider()
+        # دیالوگ ساخت گفتگوی جدید
+        def open_create_modal():
+            with ui.dialog() as dialog, ui.card().classes('bg-slate-900 text-slate-100 w-96 border border-slate-800 p-6 rounded-2xl'):
+                ui.label('✨ ساخت گفتگوی جدید').classes('text-xl font-bold mb-2')
+                title_input = ui.input('نام گفتگو', placeholder='مثلاً: پروژه پردازش تصویر').classes('w-full').props('dark outlined')
 
-    chats = db.get_chats()
-    if not chats:
-        st.caption("هنوز چتی نساختی.")
+                ui.label('انتخاب رنگ گفتگو:').classes('text-sm text-slate-400 mt-3 mb-1')
 
-    for chat in chats:
-        dot_col, btn_col = st.columns([1, 6])
-        with dot_col:
-            st.markdown(
-                f"""
-                <div style="
-                    width:14px; height:14px; border-radius:50%;
-                    background-color:{chat['color']};
-                    margin-top: 10px;
-                "></div>
-                """,
-                unsafe_allow_html=True,
-            )
-        with btn_col:
-            label = chat["title"]
-            if chat["id"] == st.session_state.active_chat_id:
-                label = f"🟢 {label}"
-            if st.button(label, key=f"chat_{chat['id']}", use_container_width=True):
-                st.session_state.active_chat_id = chat["id"]
-                st.rerun()
+                @ui.refreshable
+                def color_swatches():
+                    with ui.row().classes('w-full justify-between mb-4'):
+                        for name, hex_code in PASTEL_COLORS:
+                            def set_color(h=hex_code):
+                                selected_color['hex'] = h
+                                color_swatches.refresh()
+
+                            is_selected = selected_color['hex'] == hex_code
+                            ring = 'border-2 border-white' if is_selected else 'border-2 border-transparent'
+                            ui.element('div').classes(
+                                f'w-8 h-8 rounded-full cursor-pointer {ring} '
+                                'transition-all hover:scale-110'
+                            ).style(f'background-color: {hex_code};').on('click', set_color)
+
+                color_swatches()
+
+                def save():
+                    if title_input.value:
+                        new_id = db.create_chat(title=title_input.value.strip(), color=selected_color['hex'])
+                        dialog.close()
+                        ui.navigate.to(f'/chat/{new_id}')
+
+                with ui.row().classes('w-full justify-end gap-2 mt-4'):
+                    ui.button('انصراف', on_click=dialog.close).props('flat color=grey')
+                    ui.button('ایجاد گفتگو', on_click=save).props('unelevated color=primary')
+            dialog.open()
+
+        with ui.row().classes('items-center gap-2'):
+            ui.button(icon='help_outline', on_click=open_help_dialog).props('flat round color=white')
+            ui.button('➕ گفتگوی جدید', on_click=open_create_modal).props('unelevated color=primary').classes('rounded-xl font-bold')
+
+    # بدنه اصلی گالری
+    with ui.column().classes('w-full max-w-7xl mx-auto p-6 gap-6'):
+
+        # کادر جستجو
+        search_input = ui.input(placeholder='🔍 جستجو در عنوان گفتگوها...').classes('w-full max-w-md mx-auto').props('dark rounded outlined dense')
+
+        @ui.refreshable
+        def render_cards():
+            chats = db.get_chats()
+            query = (search_input.value or '').strip().lower()
+
+            if query:
+                chats = [c for c in chats if query in c['title'].lower()]
+
+            if not chats:
+                with ui.column().classes('w-full items-center justify-center py-16'):
+                    ui.icon('folder_off', size='64px').classes('text-slate-700 mb-3')
+                    ui.label('هیچ گفتگویی یافت نشد.').classes('text-slate-500 text-lg')
+            else:
+                with ui.grid(columns=3).classes('w-full gap-6'):
+                    for chat in chats:
+                        c_id = chat['id']
+                        with ui.card().classes('bg-slate-900/60 border border-slate-800 hover:border-sky-500/50 transition-all duration-300 p-5 rounded-2xl relative group shadow-lg hover:shadow-sky-500/10'):
+                            # نوار نئونی بالا
+                            ui.element('div').classes('h-1.5 w-full rounded-full mb-4').style(f'background-color: {chat["color"]}; box-shadow: 0 0 10px {chat["color"]}aa;')
+
+                            ui.label(chat['title']).classes('text-xl font-bold text-slate-100 line-clamp-1 mb-2')
+
+                            with ui.row().classes('items-center gap-2 text-slate-400 text-xs mb-1'):
+                                ui.icon('schedule', size='16px')
+                                ui.label(f'ایجاد: {chat["created_at"]}')
+
+                            with ui.row().classes('w-full justify-between items-center mt-6 pt-3 border-t border-slate-800/60'):
+                                # دکمه حذف چت
+                                def confirm_delete(chat_to_del=chat):
+                                    with ui.dialog() as d, ui.card().classes('bg-slate-900 border border-slate-800 p-5'):
+                                        ui.label(f'آیا از حذف گفتگوی «{chat_to_del["title"]}» مطمئن هستید؟').classes('text-slate-200 font-bold')
+                                        with ui.row().classes('w-full justify-end gap-2 mt-4'):
+                                            ui.button('انصراف', on_click=d.close).props('flat color=grey')
+
+                                            def do_delete():
+                                                # حذف فایل‌های فیزیکی روی دیسک
+                                                for f in db.get_files(chat_to_del['id']):
+                                                    sp = db.delete_file(f['id'])
+                                                    if sp and os.path.exists(sp):
+                                                        try:
+                                                            os.remove(sp)
+                                                        except OSError:
+                                                            pass
+                                                # نکته: از db.delete_chat() استفاده می‌کنیم، نه SQL
+                                                # خام؛ چون این تابع از قبل توی chat_database.py
+                                                # تعریف شده و لایه‌ی انتزاعی دیتابیس رو حفظ می‌کنه
+                                                # (اگه فردا منطق حذف عوض بشه، فقط یه‌جا لازمه
+                                                # اصلاح بشه، نه هرجا که چت حذف می‌شه).
+                                                db.delete_chat(chat_to_del['id'])
+                                                d.close()
+                                                render_cards.refresh()
+                                            ui.button('حذف', on_click=do_delete).props('unelevated color=negative')
+                                    d.open()
+
+                                ui.button(icon='delete', on_click=confirm_delete).props('flat round color=negative size=sm')
+                                ui.button('ورود به گفتگو ➔', on_click=lambda id=c_id: ui.navigate.to(f'/chat/{id}')).props('flat color=primary').classes('font-bold')
+
+        search_input.on('update:model-value', render_cards.refresh)
+        render_cards()
 
 
 # ============================================================
-# بخش اصلی
+# صفحه دوم: محیط چت و اسناد (رووت /chat/{chat_id})
 # ============================================================
+@ui.page('/chat/{chat_id}')
+def chat_page(chat_id: int):
+    ui.query('body').classes('bg-slate-950 text-slate-100 font-sans dir-rtl h-screen overflow-hidden')
 
-st.title("دستیار هوشمند پرسش‌وپاسخ PDF")
+    chat = db.get_chat_by_id(chat_id)
+    if not chat:
+        ui.navigate.to('/')
+        return
 
-if st.session_state.active_chat_id is None:
-    st.info("یک چت جدید بساز یا از سایدبار یکی رو انتخاب کن.")
-    st.stop()
+    # هدر چت
+    with ui.header().classes('bg-slate-900/80 backdrop-blur-md p-3 justify-between items-center border-b border-slate-800 h-[64px]'):
+        with ui.row().classes('items-center gap-3'):
+            ui.button(icon='arrow_forward', on_click=lambda: ui.navigate.to('/')).props('flat round color=white')
+            ui.element('div').classes('w-3 h-3 rounded-full').style(f'background-color: {chat["color"]}; box-shadow: 0 0 8px {chat["color"]};')
+            ui.label(chat['title']).classes('text-lg font-bold text-slate-100')
 
-chat_id = st.session_state.active_chat_id
+        with ui.row().classes('items-center gap-2'):
+            ui.button(icon='help_outline', on_click=open_help_dialog).props('flat round color=white size=sm')
 
-files_col, chat_col = st.columns([1, 2], gap="medium")
+            # دیالوگ تغییر نام
+            def rename_dialog():
+                with ui.dialog() as dialog, ui.card().classes('bg-slate-900 border border-slate-800 p-5 w-80'):
+                    ui.label('تغییر نام گفتگو').classes('font-bold text-slate-200 mb-2')
+                    t_in = ui.input('نام جدید', value=chat['title']).classes('w-full').props('dark outlined dense')
+                    def save():
+                        if t_in.value:
+                            db.rename_chat(chat_id, t_in.value.strip())
+                            dialog.close()
+                            ui.navigate.reload()
+                    with ui.row().classes('w-full justify-end gap-2 mt-3'):
+                        ui.button('انصراف', on_click=dialog.close).props('flat color=grey')
+                        ui.button('ذخیره', on_click=save).props('unelevated color=primary')
+                dialog.open()
 
+            ui.button(icon='edit', on_click=rename_dialog).props('flat round color=amber size=sm')
 
-# ------------------------------------------------------------
-# باکس ۱: اسناد این چت
-# ------------------------------------------------------------
+    # بدنه دو ستونه
+    with ui.row().classes('w-full h-[calc(100vh-64px)] p-4 gap-4 no-wrap'):
 
-with files_col:
-    with st.container(border=True):
-        st.subheader("📄 اسناد این چت")
+        # ۱. ستون مدیریت اسناد (سمت چپ)
+        with ui.card().classes('w-1/3 h-full bg-slate-900 border border-slate-800 p-4 flex flex-col rounded-2xl'):
+            with ui.row().classes('w-full justify-between items-center mb-3'):
+                ui.label('📑 اسناد این گفتگو').classes('text-base font-bold text-slate-200')
+                ui.icon('folder', size='20px').classes('text-sky-400')
 
-        uploaded = st.file_uploader(
-            "فایل‌های PDF را اینجا بارگذاری کنید",
-            type=["pdf"],
-            accept_multiple_files=True,
-            key=f"uploader_{chat_id}_{st.session_state.uploader_key_counter}",
-        )
+            # نگه‌داری وضعیت نوتیفیکیشن جاری بین دو رویداد مختلف
+            # (شروع آپلود و پایان آپلود) — چون این دو تا callback جدا
+            # از هم صدا زده می‌شن، باید یه رفرنس مشترک بینشون داشته باشیم
+            upload_status = {'notification': None}
 
-        if uploaded:
-            if st.button("➕ افزودن به این چت", use_container_width=True):
-                for uf in uploaded:
-                    safe_name = f"chat{chat_id}_{uf.name}"
+            def handle_begin_upload():
+                """
+                دقیقاً لحظه‌ای صدا زده می‌شه که آپلود واقعاً شروع شده
+                (فایل انتخاب شده و شروع به ارسال کرده). یه نوتیفیکیشن
+                با اسپینر نشون می‌دیم که تا پایان کار می‌مونه، تا کاربر
+                فکر نکنه چیزی متوقف شده.
+                """
+                upload_status['notification'] = ui.notification(
+                    message='📤 در حال آپلود فایل...',
+                    spinner=True,
+                    type='ongoing',
+                    timeout=None,
+                )
+
+            def finish_upload_notification(message: str, success: bool) -> None:
+                """پیام نوتیفیکیشن جاری رو به نتیجه‌ی نهایی (موفق/ناموفق) تغییر می‌ده."""
+                notification = upload_status['notification']
+                if notification is None:
+                    ui.notify(message, type='positive' if success else 'negative')
+                    return
+                notification.spinner = False
+                notification.message = message
+                notification.type = 'positive' if success else 'negative'
+                notification.timeout = 3.0
+
+            async def read_file_bytes(file_obj):
+                """
+                توی NiceGUI 3.x، خوندن محتوای فایل آپلودی async هست.
+                این تابع چند متد رایج رو امتحان می‌کنه تا مستقل از حالت
+                دقیق شیء (فایل کوچیک در حافظه / فایل بزرگ روی دیسک) کار
+                کنه.
+                """
+                if hasattr(file_obj, 'read'):
+                    result = file_obj.read()
+                    if hasattr(result, '__await__'):
+                        result = await result
+                    return result
+                if hasattr(file_obj, 'text'):
+                    text = await file_obj.text()
+                    return text.encode('utf-8')
+                if hasattr(file_obj, '_data'):
+                    return file_obj._data
+                available = [a for a in dir(file_obj) if not a.startswith('__')]
+                raise AttributeError(f"نمی‌تونم محتوای فایل رو بخونم. فیلدهای موجود: {available}")
+
+            # تابع مدیریت آپلود فایل با بررسی پسوند PDF و فایل تکراری
+            # نکته: async شد چون طبق مستندات رسمی NiceGUI 3.x، خوندن
+            # محتوای فایل آپلودی به‌صورت async انجام می‌شه.
+            async def handle_upload(e):
+                try:
+                    # طبق مستندات رسمی این نسخه، فایل زیرِ e.file هست،
+                    # نه مستقیم روی خودِ رویداد (e.name دیگه وجود نداره).
+                    file_name = e.file.name
+
+                    # بررسی عدم ورود فایل غیر PDF
+                    if not file_name.lower().endswith('.pdf'):
+                        finish_upload_notification('❌ فقط فایل‌های با فرمت PDF مجاز هستند!', success=False)
+                        return
+
+                    # بررسی فایل تکراری (بر اساس اسم فایل، داخل همین گفتگو)
+                    existing_names = {f['filename'] for f in db.get_files(chat_id)}
+                    if file_name in existing_names:
+                        finish_upload_notification(f'⚠️ «{file_name}» قبلاً به این گفتگو اضافه شده.', success=False)
+                        return
+
+                    safe_name = f"chat{chat_id}_{file_name}"
                     save_path = db.UPLOADS_DIR / safe_name
-                    with open(save_path, "wb") as f:
-                        f.write(uf.getbuffer())
 
-                    db.add_file(
-                        chat_id=chat_id,
-                        filename=uf.name,
-                        stored_path=str(save_path),
-                        status="pending",
-                    )
+                    content_bytes = await read_file_bytes(e.file)
 
-                st.session_state.uploader_key_counter += 1
-                st.rerun()
+                    with open(save_path, 'wb') as f:
+                        f.write(content_bytes)
 
-        st.divider()
+                    db.add_file(chat_id=chat_id, filename=file_name, stored_path=str(save_path), status='done')
+                    finish_upload_notification(f'✅ سند «{file_name}» با موفقیت اضافه شد', success=True)
+                    files_container.refresh()
 
-        files = db.get_files(chat_id)
+                except Exception as ex:
+                    # نکته مهم: قبلاً اگه خطایی وسط پردازش پیش می‌اومد،
+                    # کاملاً بی‌صدا شکست می‌خورد (نه توی UI چیزی نشون
+                    # داده می‌شد نه توی دیتابیس چیزی ذخیره می‌شد) و ما
+                    # اصلاً نمی‌فهمیدیم چرا. الان متن دقیق خطا رو نشون
+                    # می‌دیم تا اگه بازم مشکلی بود، دقیقاً بدونیم کجاست.
+                    finish_upload_notification(f'❌ خطا در آپلود: {ex}', success=False)
 
-        if not files:
-            st.caption("هنوز فایلی برای این چت اضافه نشده.")
-        else:
-            status_icons = {
-                "pending": "⏳ در انتظار پردازش",
-                "processing": "🔄 در حال پردازش",
-                "done": "✅ آماده",
-                "error": "❌ خطا",
-            }
+                finally:
+                    # ریست المان آپلود، چه موفق چه ناموفق
+                    uploader.reset()
+                    upload_status['notification'] = None
 
-            for f in files:
-                row_left, row_right = st.columns([4, 1])
-                with row_left:
-                    st.write(f"📎 {f['filename']}")
-                    st.caption(status_icons.get(f["status"], f["status"]))
-                with row_right:
-                    if st.button("🗑️", key=f"del_{f['id']}"):
-                        stored_path = db.delete_file(f["id"])
-                        if stored_path and os.path.exists(stored_path):
-                            os.remove(stored_path)
-                        st.rerun()
+            # المان آپلود خودکار و محدود به .pdf
+            uploader = ui.upload(
+                on_begin_upload=handle_begin_upload,
+                on_upload=handle_upload,
+                label='انتخاب فایل PDF',
+                auto_upload=True
+            ).classes('w-full mb-3').props('dark flat bordered accept=".pdf"')
+
+            ui.separator().classes('bg-slate-800 my-2')
+
+            # لیست فایل‌های آپلود شده
+            @ui.refreshable
+            def files_container():
+                files = db.get_files(chat_id)
+                if not files:
+                    with ui.column().classes('w-full items-center justify-center py-10'):
+                        ui.icon('description', size='40px').classes('text-slate-700')
+                        ui.label('هنوز هیچ سند PDF آپلود نشده است.').classes('text-slate-500 text-xs mt-2')
+                else:
+                    with ui.column().classes('w-full flex-grow overflow-y-auto gap-2 pr-1'):
+                        for f in files:
+                            with ui.row().classes('w-full justify-between items-center bg-slate-800/70 border border-slate-700/50 p-2.5 rounded-xl'):
+                                with ui.row().classes('items-center gap-2 overflow-hidden'):
+                                    ui.icon('picture_as_pdf', size='20px').classes('text-red-400 flex-shrink-0')
+                                    with ui.column().classes('gap-0 overflow-hidden'):
+                                        ui.label(f['filename']).classes('text-xs font-bold text-slate-200 truncate')
+                                        ui.label(f'وضعیت: {f["status"]}').classes('text-[10px] text-emerald-400')
+
+                                def delete_f(f_id=f['id']):
+                                    stored_path = db.delete_file(f_id)
+                                    if stored_path and os.path.exists(stored_path):
+                                        try:
+                                            os.remove(stored_path)
+                                        except OSError:
+                                            pass
+                                    files_container.refresh()
+
+                                ui.button(icon='delete', on_click=delete_f).props('flat round color=negative size=xs')
+
+            files_container()
+
+        # ۲. ستون چت (سمت راست - کاربر سمت راست، سیستم سمت چپ)
+        with ui.card().classes('w-2/3 h-full bg-slate-900 border border-slate-800 p-0 flex flex-col justify-between rounded-2xl overflow-hidden'):
+
+            # منطقه اسکرول پیام‌ها
+            messages_scroll = ui.scroll_area().classes('w-full flex-grow p-4')
+
+            def render_messages():
+                messages_scroll.clear()
+                with messages_scroll:
+                    messages = db.get_messages(chat_id)
+                    if not messages:
+                        with ui.column().classes('w-full items-center justify-center py-20'):
+                            ui.icon('chat_bubble_outline', size='48px').classes('text-slate-700 mb-2')
+                            ui.label('سوال خود را درباره اسناد بالا بپرسید...').classes('text-slate-500 text-sm')
+
+                    for msg in messages:
+                        is_user = (msg['role'] == 'user')
+
+                        # نکته: قبلاً فکر می‌کردیم justify-start توی محیط
+                        # RTL یعنی سمت راست، ولی طبق چیزی که واقعاً روی
+                        # صفحه دیدیم برعکس بود؛ پس مستقیم بر اساس نتیجه‌ی
+                        # واقعی تنظیم شده: کاربر = justify-end (راست)،
+                        # سیستم = justify-start (چپ).
+                        align_cls = 'justify-end' if is_user else 'justify-start'
+
+                        if is_user:
+                            bg_cls = 'bg-sky-600 text-white rounded-br-none'
+                            avatar = '👤'
+                        else:
+                            bg_cls = 'bg-slate-800 border border-slate-700 text-slate-100 rounded-bl-none'
+                            avatar = '🤖'
+
+                        def render_avatar():
+                            avatar_cls = (
+                                'bg-sky-700' if is_user
+                                else 'bg-slate-800 border border-slate-700'
+                            )
+                            ui.label(avatar).classes(f'text-base p-1.5 {avatar_cls} rounded-full flex-shrink-0')
+
+                        def render_bubble():
+                            with ui.column().classes(f'max-w-[75%] {bg_cls} p-3.5 rounded-2xl shadow-md'):
+                                ui.label(msg['content']).classes('text-sm leading-relaxed whitespace-pre-wrap')
+                                ui.label(msg['created_at'].split()[1][:5]).classes('text-[10px] opacity-60 self-end mt-1')
+
+                        with ui.row().classes(f'w-full {align_cls} my-2 items-start gap-2.5'):
+                            # ترتیب فرزندها عمداً بر اساس is_user فرق
+                            # می‌کنه تا آواتار همیشه توی لبه‌ی «بیرونی»
+                            # باشه: برای کاربر (راست) آواتار بعد از حباب
+                            # میاد (لبه‌ی راست)، برای سیستم (چپ) آواتار
+                            # قبل از حباب میاد (لبه‌ی چپ).
+                            if is_user:
+                                render_bubble()
+                                render_avatar()
+                            else:
+                                render_avatar()
+                                render_bubble()
+
+                    messages_scroll.scroll_to(percent=100)
+
+            render_messages()
+
+            # کادر ورودی پیام
+            with ui.row().classes('w-full p-3 bg-slate-950/80 border-t border-slate-800 gap-2 items-center'):
+                text_input = ui.input(placeholder='سوال خود را بنویسید... (Enter برای ارسال)').classes('flex-grow').props('dark rounded outlined dense')
+
+                def send_msg():
+                    val = text_input.value.strip()
+                    if val:
+                        db.add_message(chat_id, role='user', content=val)
+
+                        # پاسخ هوش مصنوعی
+                        files = db.get_files(chat_id)
+                        if not files:
+                            ans = "⚠️ لطفاً ابتدا حداقل یک فایل PDF در ستون سمت چپ بارگذاری کنید."
+                        else:
+                            ans = f"پاسخ هوش مصنوعی بر اساس {len(files)} سند آپلود شده برای سوال شما:\n«{val}»"
+
+                        db.add_message(chat_id, role='assistant', content=ans)
+                        text_input.value = ''
+                        render_messages()
+
+                text_input.on('keydown.enter', send_msg)
+                ui.button(icon='send', on_click=send_msg).props('round color=primary').classes('shadow-lg shadow-sky-500/20')
 
 
-# ------------------------------------------------------------
-# باکس ۲: چت
-# ------------------------------------------------------------
-
-with chat_col:
-    with st.container(border=True, height=480):
-        messages = db.get_messages(chat_id)
-
-        if not messages:
-            st.caption("سوالت رو از پایین بپرس ⬇")
-
-        for msg in messages:
-            with st.chat_message(msg["role"]):
-                st.write(msg["content"])
-
-
-# ============================================================
-# ورودی چت
-# ============================================================
-
-user_input = st.chat_input("سوالت رو بپرس...")
-
-if user_input:
-    db.add_message(chat_id, role="user", content=user_input)
-
-    files = db.get_files(chat_id)
-
-    if not files:
-        answer = "لطفاً ابتدا از بخش «اسناد این چت» حداقل یک فایل PDF بارگذاری کنید تا بتونم بر اساس اون بهتون پاسخ بدم."
-    else:
-        answer = "( اینجا بعداً پاسخ واقعی از مدل زبانی، بر اساس اسناد این چت، میاد )"
-
-    db.add_message(chat_id, role="assistant", content=answer)
-    st.rerun()
+# اجرای برنامه
+ui.run(title='دستیار هوشمند اسناد PDF', port=8080, reload=True)
