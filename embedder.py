@@ -1,114 +1,143 @@
-# embedder.py
-from __future__ import annotations
-
-import numpy as np
+import os
+from typing import List, Dict, Any, Union
 from pathlib import Path
 from sentence_transformers import SentenceTransformer
 
-import config  # EMBEDDING_MODEL_NAME, EMBEDDING_DIM, MODELS_DIR
+import config
+from model_manager import ModelManager
+from schemas import DocumentChunk
 
 
 class Embedder:
     """
-    Singleton wrapper around a SentenceTransformer model.
-
-    Why Singleton?
-    Loading a ~120MB (small) or ~1.1GB (large) model takes several seconds
-    and eats RAM. We load once and reuse the same object everywhere.
-
-    Usage:
-        embedder = Embedder.get_instance()
-        vecs = embedder.embed_passages(["متن اول", "متن دوم"])
-        q_vec = embedder.embed_query("سوال کاربر")
-        embedder.unload_model()  # before loading LLM
+    ماژول تولید بردار (Embedding) برای اسناد و پرسش‌های کاربر.
+    این کلاس به طور خودکار مدل را بارگذاری کرده و بردارها را برای ChromaDB آماده می‌کند.
     """
 
-    _instance: Embedder | None = None
+    def __init__(self, model_key: str = None):
+        """
+        مقداردهی اولیه و بارگذاری مدل امبدینگ در حافظه.
+        
+        ورودی:
+            model_key (str, اختیاری): نام کلید مدل از config. اگر داده نشود،
+                                     مدل فعال (config.ACTIVE_EMBEDDING) لود می‌شود.
+        """
+        # ۱. انتخاب مدل بر اساس ورودی یا کانفیگ سراسری
+        self.model_key = model_key or config.ACTIVE_EMBEDDING
+        if self.model_key not in config.EMBEDDING_MODELS:
+            raise ValueError(f"مدل '{self.model_key}' در تنظیمات EMBEDDING_MODELS یافت نشد.")
 
-    def __init__(self) -> None:
-        model_path = Path(config.MODELS_DIR) / config.EMBEDDING_MODEL_KEY
-        load_target = (
-            str(model_path) if model_path.exists() else config.EMBEDDING_MODEL_NAME
+        self.model_info = config.EMBEDDING_MODELS[self.model_key]
+        self.dimension = self.model_info["dim"]
+
+        # ۲. بررسی اینکه مدل روی دیسک هست یا نیاز به دانلود دارد
+        manager = ModelManager(root_dir=config.MODELS_ROOT)
+        success, msg, local_path = manager.get_embedding_model(
+            repo_id=self.model_info["repo_id"],
+            model_name=self.model_key
         )
+        if not success:
+            raise RuntimeError(f"خطا در آماده‌سازی فایل مدل امبدینگ: {msg}")
 
-        print(f"[Embedder] Loading model from: {load_target}")
-        self._model: SentenceTransformer | None = SentenceTransformer(load_target)
-        print(f"[Embedder] Ready. Vector dim = {config.EMBEDDING_DIM}")
+        # ۳. بارگذاری مدل روی حافظه رم یا کارت گرافیک (در صورت وجود)
+        print(f"[*] در حال لود مدل امبدینگ '{self.model_key}' در حافظه...")
+        self.model = SentenceTransformer(local_path)
+        print(f"[✓] مدل با موفقیت بارگذاری شد (ابعاد بردار: {self.dimension}).")
 
-    @classmethod
-    def get_instance(cls) -> "Embedder":
-        """Return the shared Embedder, creating it on first call."""
-        if cls._instance is None:
-            cls._instance = cls()
-        return cls._instance
+        # ۴. تشخیص نیاز به پیشوند (برای مدل‌های خانواده e5)
+        self.is_e5_family = "e5" in self.model_key.lower()
 
-    def embed_passages(
-        self,
-        texts: list[str],
-        batch_size: int = 32,
-        show_progress: bool = False,
-    ) -> np.ndarray:
+    def _format_text_for_embedding(self, text: str, is_query: bool = False) -> str:
         """
-        Embed a list of document chunks for storage in ChromaDB.
-
-        The mandatory "passage:" prefix tells the e5 model that these are
-        documents to be indexed, not queries.
-
-        Returns:
-            np.ndarray of shape (len(texts), EMBEDDING_DIM), L2-normalised.
+        افزودن خودکار پیشوندهای passage: یا query: در صورتی که مدل از خانواده e5 باشد.
         """
-        self._require_model()
-        model = self._model
-        if model is None:
-            raise RuntimeError("Model not loaded.")  # دفاعی، _require_model قبلاً چک کرده
-        prefixed = [f"passage: {t}" for t in texts]
-        return model.encode(  # ← از متغیر محلی استفاده می‌کنیم، نه self._model
-            prefixed,
+        if not self.is_e5_family:
+            return text
+
+        prefix = "query: " if is_query else "passage: "
+        # اگر متن از قبل پیشوند نداشت، اضافه کن
+        if not text.startswith(prefix):
+            return f"{prefix}{text}"
+        return text
+
+    def embed_chunks(self, chunks: List[DocumentChunk], batch_size: int = 32) -> Dict[str, Any]:
+        """
+        توضیح:
+            تبدیل دسته‌ای از چانک‌های فاطمه به بردارهای عددی، آماده برای ذخیره مستقیم در ChromaDB.
+        
+        ورودی:
+            chunks (List[DocumentChunk]): لیستی از اشیاء چانک فاطمه.
+            batch_size (int): تعداد چانک‌هایی که همزمان برداری می‌شوند (پیش‌فرض ۳۲).
+        
+        خروجی:
+            دیکشنری ۴ بخشی سازگار با متد collection.add در ChromaDB:
+            {
+                "ids": ["chunk_id_1", ...],
+                "documents": ["متن خام چانک ۱", ...],
+                "embeddings": [[0.12, ...], ...],
+                "metadatas": [{"doc_id": "...", "page_number": 1, ...}, ...]
+            }
+        """
+        if not chunks:
+            return {"ids": [], "documents": [], "embeddings": [], "metadatas": []}
+
+        # جداسازی داده‌ها و آماده‌سازی متن‌ها با پیشوند مناسب
+        raw_texts = []
+        ids = []
+        metadatas = []
+
+        for chunk in chunks:
+            ids.append(chunk.chunk_id)
+            raw_texts.append(chunk.text)
+            
+            # ذخیره متادیتاهای کاربردی در کنار بردار
+            metadatas.append({
+                "doc_id": chunk.doc_id,
+                "chunk_index": chunk.chunk_index,
+                "page_number": chunk.page_number,
+                "char_start": chunk.char_start,
+                "char_end": chunk.char_end
+            })
+
+        # اعمال پیشوند مدل e5 در صورت نیاز
+        formatted_texts = [self._format_text_for_embedding(t, is_query=False) for t in raw_texts]
+
+        # تولید بردارها با نرمال‌سازی کسینوسی
+        vectors = self.model.encode(
+            formatted_texts,
             batch_size=batch_size,
-            show_progress_bar=show_progress,
-            convert_to_numpy=True,
-            normalize_embeddings=True,
+            show_progress_bar=False,
+            normalize_embeddings=True
         )
 
-    def embed_query(self, text: str) -> np.ndarray:
-        """
-        Embed a single user query for similarity search.
+        # تبدیل آرایه‌های نامپای به لیست پایتونی استاندارد
+        embeddings_list = [v.tolist() for v in vectors]
 
-        The "query:" prefix puts the e5 model in retrieval mode.
+        return {
+            "ids": ids,
+            "documents": raw_texts,       # متن بدون پیشوند برای نمایش تمیز در خروجی
+            "embeddings": embeddings_list, # بردارهای عددی
+            "metadatas": metadatas        # اطلاعات تکمیلی مثل صفحه و آیدی سند
+        }
 
-        Returns:
-            np.ndarray of shape (EMBEDDING_DIM,), L2-normalised.
+    def embed_query(self, query_text: str) -> List[float]:
         """
-        self._require_model()
-        model = self._model
-        if model is None:
-            raise RuntimeError("Model not loaded.")  # ← indentation درست شد
-        prefixed = f"query: {text}"
-        return model.encode(  # ← از متغیر محلی استفاده می‌کنیم
-            prefixed,
-            convert_to_numpy=True,
-            normalize_embeddings=True,
+        توضیح:
+            تبدیل سوال کاربر به یک بردار عددی تک‌بعدی برای جستجوی شباهت در ChromaDB.
+        
+        ورودی:
+            query_text (str): متن سوال کاربر (ترجیحاً نرمال‌شده).
+        
+        خروجی:
+            List[float]: لیست اعدادی با ابعاد مدل (مثلاً ۳۸۴ عدد اعشاری برای e5-small).
+        """
+        if not query_text or not query_text.strip():
+            raise ValueError("متن سوال نمی‌تواند خالی باشد.")
+
+        formatted_query = self._format_text_for_embedding(query_text, is_query=True)
+        vector = self.model.encode(
+            formatted_query,
+            show_progress_bar=False,
+            normalize_embeddings=True
         )
-
-    def unload_model(self) -> None:
-        """
-        Delete the model from RAM (and VRAM if using GPU).
-
-        Call this right before loading the LLM so both models don't compete
-        for memory.
-        """
-        if self._model is not None:
-            del self._model
-            self._model = None
-            Embedder._instance = None
-            print("[Embedder] Model unloaded.")
-        else:
-            print("[Embedder] Nothing to unload.")
-
-    def _require_model(self) -> None:
-        """Raise a clear error if someone calls embed_* after unload_model()."""
-        if self._model is None:
-            raise RuntimeError(
-                "[Embedder] Model has been unloaded. "
-                "Call Embedder.get_instance() again to reload."
-            )
+        return vector.tolist()
