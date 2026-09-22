@@ -56,3 +56,15 @@ chroma_storage/*
 
 models/
 
+# فایل‌های مدل تست محلی
+test_models_folder/
+
+# دیتابیس‌های لوکال SQLite
+*.db
+database/*.db
+
+# دیتابیس برداری کروما
+chroma_db/
+
+# پوشه کلون اضافی
+offline-pdf-qa/
