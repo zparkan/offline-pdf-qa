@@ -63,8 +63,13 @@ test_models_folder/
 *.db
 database/*.db
 
-# دیتابیس برداری کروما
-chroma_db/
+# دیتابیس برداری کروما (فایل‌های سنگین باینری ایندکس نادیده گرفته شوند، ولی شناسنامه بماند)
+chroma_db/*
+!chroma_db/db_info.json
+
+# فایل‌های آپلود شده توسط کاربران در رابط کاربری
+uploaded_files/*
+!uploaded_files/.gitkeep
 
 # پوشه کلون اضافی
 offline-pdf-qa/

@@ -124,13 +124,20 @@ ACTIVE_LLM = "qwen-3b"        # مدل زبانی فعال یکپارچه با l
 def save_db_info(model_name: str):
     """
     توضیح:
-        ذخیره نام مدل امبدینگ فعلی داخل فایل db_info.json کنار پایگاه داده برداری.
+        ذخیره شناسنامه کامل پایگاه داده برداری داخل فایل db_info.json کنار پایگاه داده.
     ورودی:
         model_name (str): کلید مدل امبدینگ (مثلاً 'e5-small')
     """
     DB_DIR.mkdir(parents=True, exist_ok=True)
+    model_data = EMBEDDING_MODELS.get(model_name, {})
+    info = {
+        "embedding_model": model_name,
+        "dimension": model_data.get("dim", None),
+        "distance_metric": "cosine",
+        "description": model_data.get("desc", "")
+    }
     with open(DB_INFO_FILE, "w", encoding="utf-8") as f:
-        json.dump({"embedding_model": model_name}, f, ensure_ascii=False, indent=2)
+        json.dump(info, f, ensure_ascii=False, indent=2)
 
 def get_current_db_model() -> str:
     """
@@ -155,9 +162,18 @@ def clear_all_databases():
         ۲) محتویات داخل پایگاه داده چت‌ها را پاک می‌کند (نه ساختار یا جدول‌ها را).
     """
     # الف) پاکسازی پایگاه داده برداری
-    if DB_DIR.exists():
-        shutil.rmtree(DB_DIR)
-        print("[!] پایگاه داده برداری (ChromaDB) پاکسازی شد.")
+    try:
+        from vector_db import VectorDB
+        vdb = VectorDB()
+        deleted_count = vdb.clear_all_collections()
+        print(f"[!] کالکشن‌های پایگاه داده برداری ({deleted_count} کالکشن) با موفقیت پاک شدند.")
+    except Exception as err:
+        if DB_DIR.exists():
+            try:
+                shutil.rmtree(DB_DIR, ignore_errors=True)
+                print("[!] پوشه پایگاه داده برداری (ChromaDB) پاکسازی شد.")
+            except Exception as e:
+                print(f"[!] خطا در پاکسازی پوشه دیتابیس برداری: {e}")
 
     # ب) پاکسازی اطلاعات داخل پایگاه چت‌ها
     try:

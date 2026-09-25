@@ -1,0 +1,7 @@
+{
+  "embedding_model": "e5-small",
+  "dimension": 384,
+  "distance_metric": "cosine",
+  "created_at": "2026-09-25T15:50:00",
+  "description": "مدل بسیار سبک و سریع E5 - عالی برای تست و سیستم محلی"
+}

@@ -242,8 +242,23 @@ def delete_file(file_id):
         row = cursor.fetchone()
         conn.execute("DELETE FROM files WHERE id = ?", (file_id,))
         return row["stored_path"] if row else None
- 
- 
+
+
+# ============================================================
+# Database Cleanup
+# ============================================================
+
+def clear_chat_records():
+    """
+    پاکسازی تمامی رکوردهای تاریخچه چت‌ها، پیام‌ها و فایل‌ها بدون حذف ساختار جداول.
+    این تابع هنگام تغییر مدل امبدینگ برای جلوگیری از ناسازگاری بردارها فراخوانی می‌شود.
+    """
+    with get_connection() as conn:
+        conn.execute("DELETE FROM messages;")
+        conn.execute("DELETE FROM files;")
+        conn.execute("DELETE FROM chats;")
+
+
 # ============================================================
 # Initialize Database
 # ============================================================
