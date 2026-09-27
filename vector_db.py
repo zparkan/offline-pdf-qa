@@ -174,11 +174,30 @@ class VectorDB:
             # اگر کالکشن وجود نداشت، بدون پرتاب خطا با موفقیت فرض می‌شود
             return True
 
+    @staticmethod
+    def _build_where_clause(
+        filter_doc_ids: Optional[Union[int, str, List[Union[int, str]]]] = None
+    ) -> Optional[Dict[str, Any]]:
+        """
+        ساخت شرط فیلتر متادیتا برای ChromaDB بر اساس یک یا چند doc_id.
+        """
+        if not filter_doc_ids:
+            return None
+        if isinstance(filter_doc_ids, (list, tuple, set)):
+            clean_ids = [str(d) for d in filter_doc_ids if str(d).strip()]
+            if not clean_ids:
+                return None
+            if len(clean_ids) == 1:
+                return {"doc_id": clean_ids[0]}
+            return {"doc_id": {"$in": clean_ids}}
+        return {"doc_id": str(filter_doc_ids)}
+
     def query_raw(
         self,
         chat_id: Union[int, str],
         query_embedding: List[float],
         top_k: int = 4,
+        filter_doc_ids: Optional[Union[int, str, List[Union[int, str]]]] = None,
         filter_doc_id: Optional[Union[int, str]] = None
     ) -> Dict[str, Any]:
         """
@@ -188,7 +207,8 @@ class VectorDB:
             chat_id: شناسه چت
             query_embedding: بردار عددی سوال کاربر
             top_k: حداکثر تعداد نتایج درخواستی
-            filter_doc_id: شناسه سند خاص در صورت درخواست فیلتر روی یک فایل
+            filter_doc_ids: شناسه یا لیستی از شناسه‌های اسناد خاص برای اعمال فیلتر
+            filter_doc_id: پارامتر تکی (برای سازگاری به عقب)
 
         خروجی:
             Dict: دیکشنری خام حاوی ids, documents, metadatas و distances
@@ -213,14 +233,49 @@ class VectorDB:
         # تعداد نتایج نباید بیشتر از کل چانک‌های موجود باشد
         n_results = min(top_k, total_count)
 
-        # ساخت فیلتر در صورت مشخص شدن فایل خاص
-        where_clause = {"doc_id": str(filter_doc_id)} if filter_doc_id else None
+        # ساخت فیلتر در صورت مشخص شدن فایل یا فایل‌های خاص
+        effective_filter = filter_doc_ids if filter_doc_ids is not None else filter_doc_id
+        where_clause = self._build_where_clause(effective_filter)
 
         return collection.query(
             query_embeddings=[query_embedding],
             n_results=n_results,
             where=where_clause
         )
+
+    def get_collection_chunks(
+        self,
+        chat_id: Union[int, str],
+        filter_doc_ids: Optional[Union[int, str, List[Union[int, str]]]] = None
+    ) -> Dict[str, Any]:
+        """
+        دریافت تمام چانک‌های متنی و متادیتای موجود در کالکشن یک چت (با امکان اعمال فیلتر اسناد).
+        این متد برای ساخت ایندکس واژگانی BM25 در ماژول بازیاب (Retriever) استفاده می‌شود.
+
+        خروجی:
+            Dict حاوی "ids", "documents" و "metadatas"
+        """
+        empty_result = {"ids": [], "documents": [], "metadatas": []}
+        col_name = self._format_collection_name(chat_id)
+        try:
+            collection = self.client.get_collection(name=col_name)
+        except Exception:
+            return empty_result
+
+        if collection.count() == 0:
+            return empty_result
+
+        where_clause = self._build_where_clause(filter_doc_ids)
+        kwargs = {"include": ["documents", "metadatas"]}
+        if where_clause:
+            kwargs["where"] = where_clause
+
+        res = collection.get(**kwargs)
+        return {
+            "ids": res.get("ids", []) or [],
+            "documents": res.get("documents", []) or [],
+            "metadatas": res.get("metadatas", []) or []
+        }
 
     def clear_all_collections(self) -> int:
         """

@@ -1,6 +1,6 @@
 import os
 import asyncio
-from nicegui import ui, app
+from nicegui import ui
 import chat_database as db
 
 # ۱. راه‌اندازی دیتابیس
