@@ -1,14 +1,15 @@
 """
 tests/test_integration_pipeline.py
 -------------------------------------------------
-تست یکپارچگی (End-to-End Integration Test) برای هسته RAG:
-آزمون همزمان و بدون نقض قرارداد بین ماژول‌های:
-  - config.py (تنظیمات سراسری، شناسنامه دیتابیس)
-  - model_manager.py (مدیریت دیسکی و مسیر مدل‌ها)
-  - embedder.py (تولید بردارهای معنایی و پیشوندهای مدل E5)
-  - vector_db.py (پایگاه داده برداری ChromaDB)
-  - chat_database.py (پایگاه داده متنی SQLite چت‌ها)
-  - schemas.py (قرارداد داده‌ای DocumentChunk)
+تست یکپارچگی سراسری (End-to-End Core RAG Pipeline Test):
+آزمون جریان کامل داده‌ها بین تمامی ماژول‌های هسته سیستم:
+  ۱. config.py (تنظیمات سراسری، شناسنامه دیتابیس)
+  ۲. model_manager.py (مدیریت مسیرها و بارگذاری مدل محلی)
+  ۳. embedder.py (تولید بردارهای معنایی و پیشوندهای E5)
+  ۴. schemas.py (قرارداد رسمی DocumentChunk)
+  ۵. vector_db.py (پایگاه داده برداری ChromaDB)
+  ۶. retriever.py (موتور بازیابی ترکیبی Dense + BM25 + RRF + اعتبارسنجی ارتباط)
+  ۷. chat_database.py (پایگاه داده SQLite تاریخچه چت‌ها)
 """
 
 import sys
@@ -31,6 +32,7 @@ import config
 from schemas import DocumentChunk
 from embedder import Embedder
 from vector_db import VectorDB
+from retriever import Retriever
 import chat_database as chat_db
 
 INTEGRATION_CHAT_ID = "chat_test_integration_e2e"
@@ -116,7 +118,7 @@ def test_4_vector_db_population(embedded_data: dict):
     # ۱. اطمینان از پاک بودن کالکشن قبل از تست
     vdb.delete_chat_collection(INTEGRATION_CHAT_ID)
 
-    # ۲. ایجاد کالکشن خالی و بررسی وضعیت (سناریوی تصمیم تیم)
+    # ۲. ایجاد کالکشن خالی و بررسی وضعیت
     col = vdb.get_or_create_collection(INTEGRATION_CHAT_ID)
     assert vdb.count_chunks(INTEGRATION_CHAT_ID) == 0
     assert vdb.has_chunks(INTEGRATION_CHAT_ID) is False
@@ -132,40 +134,51 @@ def test_4_vector_db_population(embedded_data: dict):
     return vdb
 
 
-def test_5_end_to_end_semantic_search(embedder: Embedder, vdb: VectorDB):
+def test_5_full_retriever_pipeline(embedder: Embedder, vdb: VectorDB):
     """
-    تست ۵: تست طلایی RAG - پرسش معنایی و بازیابی مرتبط‌ترین چانک + تست فیلتر سند
+    تست ۵: تست طلایی RAG یکپارچه با ماژول بازیاب (Retriever)
+    شامل بازیابی ترکیبی (Dense + BM25 + RRF)، فیلتر اسناد و تشخیص سوال نامربوط
     """
-    print("\n--- [تست ۵] آزمون طلایی: جستجوی شباهت معنایی واقعی (Semantic Retrieval) ---")
+    print("\n--- [تست ۵] آزمون طلایی: بازیابی ترکیبی کامل با ماژول Retriever ---")
+    retriever = Retriever(embedder=embedder, vector_db=vdb)
 
-    # سوال در رابطه با خلاصه‌سازی است که در سند doc_0002 وجود دارد:
-    query = "رویکردهای خلاصه‌سازی اسناد چیست؟"
-    query_vector = embedder.embed_query(query)
+    # ۵-۱. تست بازیابی معنایی و واژگانی سوال مرتبط با خلاصه‌سازی
+    query = "رویکردهای متفاوت خلاصه‌سازی اسناد بلند چیست؟"
+    res1 = retriever.retrieve(query, chat_id=INTEGRATION_CHAT_ID, top_k=3, verbose=True)
 
-    # جستجو در دیتابیس برداری
-    results = vdb.query_raw(INTEGRATION_CHAT_ID, query_vector, top_k=2)
+    top_chunks = res1["top_chunks"]
+    assert len(top_chunks) > 0, "هیچ چانکی بازیابی نشد!"
+    assert res1["has_relevant_context"] is True, "سیستم به اشتباه سوال مرتبط را نامرتبط تشخیص داد!"
 
-    top_id = results["ids"][0][0]
-    top_doc = results["documents"][0][0]
-    top_distance = results["distances"][0][0]
-    top_metadata = results["metadatas"][0][0]
+    best_chunk = top_chunks[0]
+    print(f"[✓] بهترین نتیجه: شناسه '{best_chunk['chunk_id']}' از سند '{best_chunk['doc_id']}' (صفحه {best_chunk['page_number']})")
+    print(f"[✓] امتیاز RRF: {best_chunk['score']} | شباهت معنایی: {best_chunk['similarity']}")
+    assert best_chunk["doc_id"] == "doc_0002", "انتظار می‌رفت سند خلاصه‌سازی doc_0002 در رتبه ۱ باشد!"
 
-    print(f"[✓] سوال کاربر: «{query}»")
-    print(f"[✓] رتبه ۱ بازیابی‌شده: شناسه '{top_id}' از سند '{top_metadata['doc_id']}'")
-    print(f"[✓] فاصله کسینوسی: {top_distance:.4f} (هر چه به ۰ نزدیک‌تر، شباهت بیشتر)")
-    print(f"[✓] بخشی از متن بازیابی‌شده: {top_doc[:65]}...")
-
-    # اعتبارسنجی معنایی: نتیجه اول باید حتماً مربوط به خلاصه‌سازی (doc_0002) باشد
-    assert "خلاصه‌سازی" in top_doc or top_metadata["doc_id"] == "doc_0002", (
-        "جستجوی معنایی چانک مرتبط با خلاصه‌سازی را در رتبه ۱ نیاورده است!"
+    # ۵-۲. تست فیلتر اسناد: اجبار سیستم به جستجو فقط در سند doc_0001
+    print("\n[تست ۵-۲] فیلتر اسناد: جستجو فقط در doc_0001...")
+    res_filtered = retriever.retrieve(
+        query_text=query,
+        chat_id=INTEGRATION_CHAT_ID,
+        top_k=2,
+        filter_doc_ids="doc_0001",
+        verbose=False
     )
+    for c in res_filtered["top_chunks"]:
+        assert c["doc_id"] == "doc_0001", f"خطا: فیلتر سند نقض شد و سند {c['doc_id']} برگردانده شد!"
+    print(f"[✓] فیلتر اسناد با موفقیت اعمال شد و تمام چانک‌ها متعلق به doc_0001 بودند.")
 
-    # تست فیلتر سند: مجبور کردن سیستم به جستجو فقط در doc_0001
-    filtered_results = vdb.query_raw(INTEGRATION_CHAT_ID, query_vector, top_k=2, filter_doc_id="doc_0001")
-    for meta in filtered_results["metadatas"][0]:
-        assert meta["doc_id"] == "doc_0001", "فیلتر doc_id کار نکرده و چانکی از سند دیگر بازگشته است!"
-
-    print(f"[✓] فیلتر سند (doc_id='doc_0001') با موفقیت مانع نفوذ سایر اسناد شد.")
+    # ۵-۳. تست تشخیص سوال کاملاً نامربوط (عدم وجود پاسخ در منابع)
+    print("\n[تست ۵-۳] اعتبارسنجی سوال نامربوط: «طرز تهیه کیک شکلاتی خانگی در فر چیست؟»...")
+    res_irrelevant = retriever.retrieve(
+        query_text="طرز تهیه کیک شکلاتی خانگی در فر چیست؟",
+        chat_id=INTEGRATION_CHAT_ID,
+        top_k=2,
+        min_similarity=0.80,
+        verbose=False
+    )
+    assert res_irrelevant["has_relevant_context"] is False, "خطا: سوال نامربوط نباید دارای زمینه مرتبط باشد!"
+    print(f"[✓] سوال نامربوط با موفقیت شناسایی شد (has_relevant_context: False | بیشترین شباهت: {res_irrelevant['max_similarity']}).")
 
 
 def test_6_chat_database_and_cleanup_sync(vdb: VectorDB):
@@ -214,12 +227,12 @@ def run_pipeline_test():
     embedder = test_2_embedder_model_manager_integration()
     embedded_data = test_3_schemas_to_embedding(embedder)
     vdb = test_4_vector_db_population(embedded_data)
-    test_5_end_to_end_semantic_search(embedder, vdb)
+    test_5_full_retriever_pipeline(embedder, vdb)
     test_6_chat_database_and_cleanup_sync(vdb)
 
     print("\n" + "=" * 70)
-    print("  🏆 فوق‌العاده است زینب عزیز! تمام ماژول‌های امبدر، پایگاه داده برداری،")
-    print("     شناسنامه، مدل منیجر و چت دیتابیس در هماهنگی ۱۰۰٪ کامل کار می‌کنند.")
+    print("  🏆 تبریک! تمام ماژول‌های هسته سیستم (Config، ModelManager، Embedder،")
+    print("     VectorDB، Retriever و ChatDatabase) در هماهنگی ۱۰۰٪ کار می‌کنند.")
     print("=" * 70 + "\n")
 
 

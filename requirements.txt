@@ -1,0 +1,7 @@
+# Core Dependencies for Offline PDF QA System
+chromadb>=0.4.22
+sentence-transformers>=2.2.2
+torch>=2.0.0
+rank-bm25>=0.2.2
+pymupdf>=1.23.0
+pydantic>=2.0.0
