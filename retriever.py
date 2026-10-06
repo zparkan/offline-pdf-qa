@@ -96,7 +96,7 @@ class Retriever:
         chat_id: Union[int, str],
         top_k: int = 4,
         filter_doc_ids: Optional[Union[int, str, List[Union[int, str]]]] = None,
-        min_similarity: float = 0.80,
+        min_similarity: float = 0.70,
         verbose: bool = True
     ) -> Dict[str, Any]:
         """

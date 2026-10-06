@@ -30,13 +30,21 @@ def _generate_doc_id(pdf_path: Path) -> str:
     return f"doc_{digest}"
 
 
-def extract_pdf(pdf_path: str | Path, source_type: str = "real") -> ExtractedDocument:
+from typing import Callable, Optional
+
+
+def extract_pdf(
+    pdf_path: str | Path,
+    source_type: str = "real",
+    on_progress: Optional[Callable[[str, float], None]] = None,
+) -> ExtractedDocument:
     """
     استخراج متن یک فایل PDF به تفکیک صفحه.
 
     Args:
         pdf_path: مسیر فایل PDF ورودی.
         source_type: "real" برای PDF واقعی، "synthetic" فقط برای سازگاری با F-05.
+        on_progress: کال‌بک اختیاری برای گزارش وضعیت و درصد پیشرفت به رابط کاربری.
 
     Returns:
         ExtractedDocument شامل doc_id, filename, source_type و لیست pages.
@@ -48,23 +56,15 @@ def extract_pdf(pdf_path: str | Path, source_type: str = "real") -> ExtractedDoc
     if not pdf_path.exists():
         raise FileNotFoundError(f"فایل پیدا نشد: {pdf_path}")
 
+    if on_progress:
+        on_progress("در حال خواندن فایل PDF و آماده‌سازی صفحات...", 0.10)
+
     doc_id = _generate_doc_id(pdf_path)
     pages: list[ExtractedPage] = []
 
     with fitz.open(pdf_path) as doc:
+        total_pages = len(doc)
         for page_index, page in enumerate(doc):
-            # نکته‌ی باز: اگر صفحه لایه‌ی متنی نداشته باشد (اسکن‌شده)،
-            # get_text() رشته‌ی خالی برمی‌گرداند. طبق تصمیم فعلی این صفحه
-            # از لیست حذف نمی‌شود، ولی اینکه نیاز به OCR جداگانه دارد یا نه
-            # هنوز با تیم مشخص نشده.
-            #
-            # sort=True: طبق تست F-03 روی shimi.pdf (جزوه‌ی چندستونی/جدولی)،
-            # این گزینه ترتیب خواندن (reading order) را به‌شکل محسوسی بهتر
-            # می‌کند -- تعداد شکستگی‌های \n وسط کلمه در یک صفحه‌ی فهرست‌مانند
-            # از ۱۲۲ به ۲۸ مورد کاهش یافت. این مشکل را کامل حل نمی‌کند
-            # (اسناد چندستونی هنوز محدودیت دارند) ولی هزینه‌ای ندارد و روی
-            # اسناد پاراگرافی ساده (مثل sample_persian.pdf) تاثیر منفی
-            # نداشت.
             raw_text = page.get_text("text", sort=True)
             pages.append(
                 ExtractedPage(
@@ -72,6 +72,12 @@ def extract_pdf(pdf_path: str | Path, source_type: str = "real") -> ExtractedDoc
                     raw_text=raw_text,
                 )
             )
+            if on_progress and total_pages > 0:
+                pct = 0.10 + (0.20 * ((page_index + 1) / total_pages))
+                on_progress(f"استخراج صفحه {page_index + 1} از {total_pages}...", pct)
+
+    if on_progress:
+        on_progress(f"استخراج {len(pages)} صفحه با موفقیت انجام شد.", 0.30)
 
     return ExtractedDocument(
         doc_id=doc_id,

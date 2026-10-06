@@ -18,6 +18,9 @@ DATA_DIR = BASE_DIR / "data"
 # مسیر پایگاه داده چت‌ها (نام موقت: chat_history.db - بعد از پیاده‌سازی نهایی بررسی شود)
 CHAT_DB_FILE = BASE_DIR / "chat_history.db"
 
+# پورت سرور وب رابط کاربری (پورت 8050 انتخاب شد تا با Connect.exe و پورت 8080 تداخل نداشته باشد)
+SERVER_PORT = 8050
+
 # تشخیص محیط اجرا (Google Colab یا سیستم محلی)
 IS_COLAB = "google.colab" in str(os.environ)
 ENV_MODE = "COLAB" if IS_COLAB else "LOCAL"
@@ -30,57 +33,79 @@ EMBEDDING_MODELS = {
     "e5-small": {
         "repo_id": "intfloat/multilingual-e5-small",
         "dim": 384,
+        "max_tokens": 512,
+        "max_chars": 1200,
         "desc": "مدل بسیار سبک و سریع E5 - عالی برای تست و سیستم محلی"
     },
     # سایر مدل‌های برتر cheRAGh و HuggingFace
     "qwen3-emb-4b": {
         "repo_id": "Qwen/Qwen3-Embedding-4B",
         "dim": 2560,
+        "max_tokens": 32768,
+        "max_chars": 75000,
         "desc": "مدل بسیار قوی و مدرن سری کوئن ۳ برای امبدینگ"
     },
     "bge-m3": {
         "repo_id": "BAAI/bge-m3",
         "dim": 1024,
+        "max_tokens": 8192,
+        "max_chars": 18000,
         "desc": "رتبه ۲ cheRAGh - چندزبانه همه‌فن‌حریف با درک عمیق فارسی"
     },
     "octen-emb-8b": {
         "repo_id": "Octen/Octen-Embedding-8B",
         "dim": 4096,
+        "max_tokens": 8192,
+        "max_chars": 18000,
         "desc": "مدل بسیار بزرگ و قدرتمند ۸ میلیاردی برای ارزیابی نهایی"
     },
     "qwen3-emb-8b": {
         "repo_id": "Qwen/Qwen3-Embedding-8B",
         "dim": 4096,
+        "max_tokens": 32768,
+        "max_chars": 75000,
         "desc": "نسخه ۸ میلیارد پارامتری کوئن ۳ برای بیشترین دقت معنایی"
     },
     "snowflake-arctic-l": {
         "repo_id": "Snowflake/snowflake-arctic-embed-l-v2.0",
         "dim": 1024,
+        "max_tokens": 8192,
+        "max_chars": 18000,
         "desc": "مدل قدرتمند اسنوفلیک نسخه ۲ برای جستجوی دقیق معنایی"
     },
     "f2llm-4b": {
         "repo_id": "codefuse-ai/F2LLM-v2-4B",
         "dim": 2560,
+        "max_tokens": 4096,
+        "max_chars": 9000,
         "desc": "مدل تخصصی بر پایه LLM برای بازنمایی برداری"
     },
     "e5-large": {
         "repo_id": "intfloat/multilingual-e5-large",
         "dim": 1024,
+        "max_tokens": 512,
+        "max_chars": 1200,
         "desc": "رتبه ۱ cheRAGh - بسیار دقیق در متون چندزبانه"
     },
     "e5-base": {
         "repo_id": "intfloat/multilingual-e5-base",
         "dim": 768,
+        "max_tokens": 512,
+        "max_chars": 1200,
         "desc": "تعادل عالی بین سرعت، حافظه و دقت معنایی"
     },
     "fa-sentence": {
         "repo_id": "MirSamanPR/fa-sentence-v2",
         "dim": 768,
+        "max_tokens": 512,
+        "max_chars": 1200,
         "desc": "رتبه ۳ cheRAGh - مدل آموزش‌دیده اختصاصی برای زبان فارسی"
     },
     "minilm": {
         "repo_id": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
         "dim": 384,
+        "max_tokens": 128,
+        "max_chars": 300,
         "desc": "بسیار سبک و سریع، مناسب سیستم‌های ضعیف با رم پایین"
     }
 }
@@ -118,7 +143,51 @@ ACTIVE_EMBEDDING = "e5-small"  # مدل امبدینگ فعال: e5-small برا
 ACTIVE_LLM = "qwen-3b"        # مدل زبانی فعال یکپارچه با llama-cpp
 
 # =====================================================================
-# ۵. توابع مدیریت دیتابیس و مدل‌ها (Database & Model Helpers)
+# ۵. تنظیمات قطعه‌بندی اسناد (Document Chunking Configuration)
+# =====================================================================
+CHUNK_SIZE = 500       # حداکثر طول هدف هر چانک به کاراکتر
+CHUNK_OVERLAP = 100    # میزان همپوشانی چانک‌های مجاور به کاراکتر
+
+
+def validate_chunk_config(chunk_size: int = None, model_name: str = None) -> bool:
+    """
+    بررسی اعتبارسنجی اندازه چانک نسبت به حداکثر طول ورودی مدل امبدینگ فعال.
+    اگر طول چانک از سقف مجاز مدل بیشتر باشد، خطای صریح توسعه‌دهنده برمی‌گرداند.
+    """
+    chk_size = chunk_size if chunk_size is not None else CHUNK_SIZE
+    chk_overlap = CHUNK_OVERLAP
+    mdl_name = model_name if model_name is not None else ACTIVE_EMBEDDING
+
+    if chk_overlap >= chk_size:
+        raise ValueError(
+            f"[Developer Configuration Error] میزان همپوشانی ({chk_overlap}) "
+            f"نمی‌تواند بزرگتر یا مساوی طول چانک ({chk_size}) باشد!"
+        )
+
+    if mdl_name not in EMBEDDING_MODELS:
+        raise ValueError(f"[Config Error] مدل امبدینگ '{mdl_name}' در تنظیمات EMBEDDING_MODELS یافت نشد.")
+
+    model_info = EMBEDDING_MODELS[mdl_name]
+    max_chars = model_info.get("max_chars", 1200)
+    max_tokens = model_info.get("max_tokens", 512)
+
+    if chk_size > max_chars:
+        raise ValueError(
+            f"\n{'='*75}\n"
+            f"[خطای پیکربندی توسعه‌دهنده - Developer Configuration Error]\n"
+            f"طول چانک انتخابی شما ({chk_size} کاراکتر) از حداکثر ظرفیت ورودی مدل امبدینگ '{mdl_name}' ({max_chars} کاراکتر) بیشتر است!\n"
+            f"حداکثر طول مجاز برای مدل '{mdl_name}': {max_chars} کاراکتر (معادل تقریبی {max_tokens} توکن) است.\n"
+            f"راهکار: لطفاً CHUNK_SIZE را در فایل config.py به مقداری کمتر یا مساوی {max_chars} کاهش دهید تا متن دچار Truncation نشود.\n"
+            f"{'='*75}"
+        )
+    return True
+
+
+# اعتبارسنجی خودکار در زمان بارگذاری کانفیگ
+validate_chunk_config()
+
+# =====================================================================
+# ۶. توابع مدیریت دیتابیس و مدل‌ها (Database & Model Helpers)
 # =====================================================================
 
 def save_db_info(model_name: str):

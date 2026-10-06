@@ -11,10 +11,22 @@ BASE_DIR = Path(__file__).resolve().parent
 DATABASE_DIR = BASE_DIR / "database"
 DATABASE_DIR.mkdir(exist_ok=True)
 DATABASE_PATH = DATABASE_DIR / "chat_history.db"
- 
-UPLOADS_DIR = BASE_DIR / "uploaded_files"
-UPLOADS_DIR.mkdir(exist_ok=True)
- 
+
+# پوشه داده‌های اصلی به تفکیک گفتگو (data/{chat_id}/)
+DATA_DIR = BASE_DIR / "data"
+DATA_DIR.mkdir(exist_ok=True)
+
+UPLOADS_DIR = DATA_DIR  # حفظ سازگاری کدهای قبلی
+
+
+def get_chat_data_dir(chat_id) -> Path:
+    """
+    دریافت یا ایجاد مسیر پوشه اختصاصی اسناد یک گفتگو در پوشه data.
+    """
+    chat_dir = DATA_DIR / str(chat_id)
+    chat_dir.mkdir(parents=True, exist_ok=True)
+    return chat_dir
+
 DEFAULT_CHAT_COLOR = "#AEC6CF"  # آبی آسمانی پاستلی، پیش‌فرض چت‌های قدیمی
  
  

@@ -122,28 +122,68 @@ def clean_persian_text(raw_text: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# مرحله‌ی ۳: اعمال روی کل سند (خروجی F-02)
-# ---------------------------------------------------------------------------
+from typing import Callable, Optional, Union, Any
 
-def preprocess_document(doc: dict) -> PreprocessedDocument:
+
+def preprocess_document(
+    doc: Union[dict, Any],
+    on_progress: Optional[Callable[[str, float], None]] = None,
+) -> PreprocessedDocument:
     """
-    doc: دیکشنری با ساختار سطح ۱ قرارداد داده‌ای (خروجی F-02 -- ExtractedDocument)
+    doc: دیکشنری با ساختار سطح ۱ قرارداد داده‌ای یا شیء ExtractedDocument
     خروجی: PreprocessedDocument با فیلد clean_text در هر صفحه؛ raw_text دست‌نخورده.
     """
-    pages = [
-        PreprocessedPage(
-            page_number=page["page_number"],
-            raw_text=page["raw_text"],
-            clean_text=clean_persian_text(page["raw_text"]),
+    if hasattr(doc, "model_dump"):
+        doc_dict = doc.model_dump()
+    elif hasattr(doc, "dict"):
+        doc_dict = doc.dict()
+    else:
+        doc_dict = doc
+
+    pages_raw = doc_dict.get("pages", [])
+    total_pages = len(pages_raw)
+
+    if on_progress:
+        on_progress("شروع پاکسازی، نرمال‌سازی متون و رفع شکستگی کلمات...", 0.35)
+
+    pages = []
+    for idx, page in enumerate(pages_raw):
+        p_num = page.get("page_number", idx + 1)
+        r_text = page.get("raw_text", "")
+        c_text = clean_persian_text(r_text)
+        pages.append(
+            PreprocessedPage(
+                page_number=p_num,
+                raw_text=r_text,
+                clean_text=c_text,
+            )
         )
-        for page in doc["pages"]
-    ]
+        if on_progress and total_pages > 0:
+            pct = 0.35 + (0.20 * ((idx + 1) / total_pages))
+            on_progress(f"نرمال‌سازی صفحه {p_num} از {total_pages}...", pct)
+
+    if on_progress:
+        on_progress("پالایش و نرمال‌سازی متن سند تکمیل شد.", 0.55)
+
     return PreprocessedDocument(
-        doc_id=doc["doc_id"],
-        filename=doc["filename"],
-        source_type=doc.get("source_type", "real"),
+        doc_id=doc_dict.get("doc_id", "doc_unknown"),
+        filename=doc_dict.get("filename", "unknown.pdf"),
+        source_type=doc_dict.get("source_type", "real"),
         pages=pages,
     )
+
+
+def save_preprocessed_document(document: PreprocessedDocument, output_path: str | Path) -> Path:
+    """
+    ذخیره‌سازی سند پالایش‌شده در قالب یک فایل JSON در پوشه چت.
+    """
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with output_path.open("w", encoding="utf-8") as f:
+        json.dump(document.model_dump(), f, ensure_ascii=False, indent=2)
+
+    return output_path
 
 
 # ---------------------------------------------------------------------------

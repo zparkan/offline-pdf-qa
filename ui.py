@@ -2,6 +2,7 @@ import os
 import asyncio
 from nicegui import ui
 import chat_database as db
+from orchestrator import get_orchestrator
 
 # ۱. راه‌اندازی دیتابیس
 db.initialize_database()
@@ -16,25 +17,6 @@ PASTEL_COLORS = [
     ("قرمز سرخابی", "#E63946"),
     ("فیروزه‌ای", "#00BBF9"),
 ]
-
-
-# ============================================================
-# تابع لایه اتصال به RAG و Ollama
-# ============================================================
-async def get_rag_response_stream(query: str, chat_id: int):
-    """
-    این تابع به ماژول RAG متصل می‌شود و پاسخ را به صورت Stream ارسال می‌کند.
-    """
-    sample_response = (
-        f"پاسخ استخراج‌شده برای سوال «{query}» بر اساس اسناد آپلودشده:\n\n"
-        "با بررسی محتوای فایل PDF، اطلاعات مرتبط استخراج شد. "
-        "این متن به‌صورت زنده و توکن‌به‌توکن در رابط کاربری NiceGUI نمایش داده می‌شود.\n\n"
-        "📌 **مرجع:** صفحه ۴ و ۷"
-    )
-
-    for word in sample_response.split(" "):
-        yield word + " "
-        await asyncio.sleep(0.06)
 
 
 # ============================================================
@@ -127,6 +109,10 @@ def gallery_page():
                 def save():
                     if title_input.value:
                         new_id = db.create_chat(title=title_input.value.strip(), color=selected_color['hex'])
+                        # آماده‌سازی پوشه دیسک و کالکشن ChromaDB
+                        db.get_chat_data_dir(new_id)
+                        orch = get_orchestrator()
+                        orch.vector_db.get_or_create_collection(new_id)
                         dialog.close()
                         ui.navigate.to(f'/chat/{new_id}')
 
@@ -177,14 +163,8 @@ def gallery_page():
                                             ui.button('انصراف', on_click=d.close).props('flat color=grey')
 
                                             def do_delete():
-                                                for f in db.get_files(chat_to_del['id']):
-                                                    sp = db.delete_file(f['id'])
-                                                    if sp and os.path.exists(sp):
-                                                        try:
-                                                            os.remove(sp)
-                                                        except OSError:
-                                                            pass
-                                                db.delete_chat(chat_to_del['id'])
+                                                orch = get_orchestrator()
+                                                orch.delete_chat(chat_to_del['id'])
                                                 d.close()
                                                 render_cards.refresh()
                                             ui.button('حذف', on_click=do_delete).props('unelevated color=negative')
@@ -291,20 +271,41 @@ def chat_page(chat_id: int):
                         finish_upload_notification(f'⚠️ «{file_name}» قبلاً به این گفتگو اضافه شده.', success=False)
                         return
 
-                    safe_name = f"chat{chat_id}_{file_name}"
-                    save_path = db.UPLOADS_DIR / safe_name
+                    chat_dir = db.get_chat_data_dir(chat_id)
+                    save_path = chat_dir / file_name
 
                     content_bytes = await read_file_bytes(e.file)
 
                     with open(save_path, 'wb') as f:
                         f.write(content_bytes)
 
-                    db.add_file(chat_id=chat_id, filename=file_name, stored_path=str(save_path), status='done')
-                    finish_upload_notification(f'✅ سند «{file_name}» با موفقیت اضافه شد', success=True)
+                    file_record_id = db.add_file(chat_id=chat_id, filename=file_name, stored_path=str(save_path), status='processing')
+                    files_container.refresh()
+
+                    # اجرای پایپ‌لاین پیش‌پردازش و امبدینگ در ارکستراتور
+                    orch = get_orchestrator()
+
+                    def progress_callback(msg: str, pct: float):
+                        notif = upload_status.get('notification')
+                        if notif:
+                            notif.message = f"⏳ {msg} ({int(pct * 100)}%)"
+
+                    loop = asyncio.get_event_loop()
+                    await loop.run_in_executor(
+                        None,
+                        orch.process_document,
+                        save_path,
+                        chat_id,
+                        file_name,
+                        progress_callback
+                    )
+
+                    db.update_file_status(file_record_id, 'done')
+                    finish_upload_notification(f'✅ پردازش سند «{file_name}» با موفقیت تکمیل شد', success=True)
                     files_container.refresh()
 
                 except Exception as ex:
-                    finish_upload_notification(f'❌ خطا در آپلود: {ex}', success=False)
+                    finish_upload_notification(f'❌ خطا در پردازش سند: {ex}', success=False)
 
                 finally:
                     uploader.reset()
@@ -336,13 +337,9 @@ def chat_page(chat_id: int):
                                         ui.label(f['filename']).classes('text-xs font-bold text-slate-200 truncate')
                                         ui.label(f'وضعیت: {f["status"]}').classes('text-[10px] text-emerald-400')
 
-                                def delete_f(f_id=f['id']):
-                                    stored_path = db.delete_file(f_id)
-                                    if stored_path and os.path.exists(stored_path):
-                                        try:
-                                            os.remove(stored_path)
-                                        except OSError:
-                                            pass
+                                def delete_f(f_id=f['id'], f_name=f['filename']):
+                                    orch = get_orchestrator()
+                                    orch.delete_document(chat_id, f_name, f_id)
                                     files_container.refresh()
 
                                 ui.button(icon='delete', on_click=delete_f).props('flat round color=negative size=xs')
@@ -417,8 +414,18 @@ def chat_page(chat_id: int):
 
                     files = db.get_files(chat_id)
                     if not files:
-                        no_file_ans = "لطفاً ابتدا حداقل یک فایل PDF در ستون سمت چپ بارگذاری کنید ⚠️"
+                        no_file_ans = "لطفا حداقل یک سند بارگذاری کنید تا بر اساس آن به سوالاتتان پاسخ دهیم ⚠️"
                         db.add_message(chat_id, role='assistant', content=no_file_ans)
+                        render_messages()
+                        send_btn.enable()
+                        text_input.enable()
+                        return
+
+                    # بررسی گارد پردازش اسناد (In-Flight Processing Guard)
+                    is_processing = any(f.get('status') == 'processing' for f in files)
+                    if is_processing:
+                        guard_ans = "⚠️ در حال پردازش اسناد .... لطفاً منتظر بمانید"
+                        db.add_message(chat_id, role='assistant', content=guard_ans)
                         render_messages()
                         send_btn.enable()
                         text_input.enable()
@@ -431,23 +438,67 @@ def chat_page(chat_id: int):
                             with ui.column().classes('max-w-[75%] bg-slate-800 border border-slate-700 text-slate-100 rounded-bl-none p-3.5 rounded-2xl shadow-md'):
                                 response_label = ui.label('\u200f').classes('text-sm leading-relaxed whitespace-pre-wrap text-right').style('direction: rtl; unicode-bidi: plaintext;')
 
-                    # دریافت و به‌روزرسانی زنده استریم
-                    full_response = ""
-                    async for chunk in get_rag_response_stream(val, chat_id):
-                        full_response += chunk
-                        response_label.text = f"\u200f{full_response}"
-                        messages_scroll.scroll_to(percent=100)
+                    # قفل ایمن و دریافت استریم پاسخ از ارکستراتور
+                    try:
+                        text_input.props('loading')
+                        text_input.placeholder = "در حال تولید پاسخ هوشمند..."
 
-                    # ذخیره پاسخ کامل در دیتابیس
-                    db.add_message(chat_id, role='assistant', content=full_response)
+                        orch = get_orchestrator()
+                        full_response = ""
+                        citations_list = []
 
-                    send_btn.enable()
-                    text_input.enable()
-                    text_input.focus()
+                        async for packet in orch.ask_question_stream(val, chat_id):
+                            p_type = packet.get("type")
+                            if p_type == "token":
+                                tok = packet.get("content", "")
+                                full_response += tok
+                                response_label.text = f"\u200f{full_response}"
+                                messages_scroll.scroll_to(percent=100)
+                            elif p_type == "sources":
+                                citations_list = packet.get("citations", [])
+
+                        # پیوست مراجع استنادی در صورت وجود
+                        if citations_list:
+                            sources_text = "\n\n📌 **منابع و مراجع سند:**\n"
+                            seen = set()
+                            for c in citations_list:
+                                fname = c.get("filename", "")
+                                pnum = c.get("page_number", "")
+                                ref_key = f"{fname}_{pnum}"
+                                if ref_key not in seen:
+                                    seen.add(ref_key)
+                                    sources_text += f"- 📄 سند: `{fname}` (صفحه {pnum})\n"
+                            full_response += sources_text
+                            response_label.text = f"\u200f{full_response}"
+                            messages_scroll.scroll_to(percent=100)
+
+                        # ذخیره پاسخ کامل در دیتابیس پیام‌های چت SQLite
+                        db.add_message(chat_id, role='assistant', content=full_response)
+
+                    except Exception as ex:
+                        err_msg = f"❌ متأسفانه در فرآیند تولید پاسخ خطایی رخ داد: {ex}"
+                        db.add_message(chat_id, role='assistant', content=err_msg)
+                        render_messages()
+
+                    finally:
+                        text_input.props(remove='loading')
+                        text_input.placeholder = "سوال خود را بنویسید... (Enter برای ارسال)"
+                        send_btn.enable()
+                        text_input.enable()
+                        text_input.focus()
 
                 text_input.on('keydown.enter', send_msg)
                 send_btn.on('click', send_msg)
 
 
-# اجرای برنامه
-ui.run(title='دستیار هوشمند اسناد PDF', port=8080, reload=True)
+import config
+
+
+def start_ui_server(port: int = None, reload: bool = False):
+    """تابع راه‌اندازی سرور رابط کاربری NiceGUI."""
+    srv_port = port if port is not None else getattr(config, 'SERVER_PORT', 8050)
+    ui.run(title='دستیار هوشمند اسناد PDF', port=srv_port, reload=reload)
+
+
+if __name__ in {"__main__", "__mp_main__"}:
+    start_ui_server()

@@ -57,6 +57,35 @@ class QAPair:
     def to_dict(self) -> dict:
         return asdict(self)
 
-    @classmethod
-    def from_dict(cls, data: dict) -> "QAPair":
         return cls(**data)
+
+
+# =====================================================================
+# ساختارهای استخراج و پیش‌پردازش سند (F-02 و F-03 فاطمه)
+# =====================================================================
+from pydantic import BaseModel, Field
+
+
+class ExtractedPage(BaseModel):
+    page_number: int
+    raw_text: str
+
+
+class ExtractedDocument(BaseModel):
+    doc_id: str
+    filename: str
+    source_type: str = "real"
+    pages: List[ExtractedPage]
+
+
+class PreprocessedPage(BaseModel):
+    page_number: int
+    raw_text: str
+    clean_text: str
+
+
+class PreprocessedDocument(BaseModel):
+    doc_id: str
+    filename: str
+    source_type: str = "real"
+    pages: List[PreprocessedPage]
