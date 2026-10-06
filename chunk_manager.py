@@ -56,6 +56,7 @@ def chunk_page_text(
     start_index: int = 0,
     chunk_size: Optional[int] = None,
     chunk_overlap: Optional[int] = None,
+    filename: str = "",
 ) -> List[DocumentChunk]:
     """
     قطعه‌بندی متن یک صفحه بر اساس اندازه و همپوشانی تعیین‌شده در کانفیگ.
@@ -104,6 +105,7 @@ def chunk_page_text(
             page_number=page_number,
             char_start=c_start,
             char_end=c_end,
+            filename=filename,
         )
         chunk_counter += 1
         return item
@@ -193,6 +195,7 @@ def chunk_document(
         doc_dict = doc
 
     doc_id = doc_dict.get("doc_id", "doc_unknown")
+    doc_filename = doc_dict.get("filename", "")
     pages = doc_dict.get("pages", [])
     total_pages = len(pages)
 
@@ -214,6 +217,7 @@ def chunk_document(
             start_index=chunk_global_idx,
             chunk_size=c_size,
             chunk_overlap=c_overlap,
+            filename=doc_filename,
         )
 
         all_chunks.extend(page_chunks)

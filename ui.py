@@ -396,7 +396,7 @@ def chat_page(chat_id: int):
 
             # کادر ورودی پیام
             with ui.row().classes('w-full p-3 bg-slate-950/80 border-t border-slate-800 gap-2 items-center'):
-                text_input = ui.input(placeholder='سوال خود را بنویسید... (Enter برای ارسال)').classes('flex-grow').props('dark rounded outlined dense [dir=rtl]').style('direction: rtl; unicode-bidi: plaintext;')
+                text_input = ui.textarea(placeholder='سوال خود را بنویسید... (Enter برای ارسال، Shift+Enter برای خط بعد)').classes('flex-grow').props('dark rounded outlined dense autogrow rows=1 [dir=rtl]').style('direction: rtl; unicode-bidi: plaintext;')
                 send_btn = ui.button(icon='send').props('round color=primary').classes('shadow-lg shadow-sky-500/20')
 
                 async def send_msg():
@@ -482,12 +482,12 @@ def chat_page(chat_id: int):
 
                     finally:
                         text_input.props(remove='loading')
-                        text_input.placeholder = "سوال خود را بنویسید... (Enter برای ارسال)"
+                        text_input.placeholder = "سوال خود را بنویسید... (Enter برای ارسال، Shift+Enter برای خط بعد)"
                         send_btn.enable()
                         text_input.enable()
                         text_input.focus()
 
-                text_input.on('keydown.enter', send_msg)
+                text_input.on('keydown.enter.exact.prevent', send_msg)
                 send_btn.on('click', send_msg)
 
 

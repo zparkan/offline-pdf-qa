@@ -65,7 +65,9 @@ def extract_pdf(
     with fitz.open(pdf_path) as doc:
         total_pages = len(doc)
         for page_index, page in enumerate(doc):
-            raw_text = page.get_text("text", sort=True)
+            # برای زبان فارسی (راست‌به‌چپ)، sort=True کلمات را از چپ‌به‌راست و معکوس مرتب می‌کرد.
+            # با sort=False جریان طبیعی استخراج متون حفظ می‌شود.
+            raw_text = page.get_text("text", sort=False)
             pages.append(
                 ExtractedPage(
                     page_number=page_index + 1,  # PyMuPDF از صفر شروع می‌کند، ما از ۱

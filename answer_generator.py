@@ -164,6 +164,7 @@ class AnswerGenerator:
         citations: List[Dict[str, Any]] = []
         for chunk in top_chunks:
             doc_id = chunk.get("doc_id") or chunk.get("metadata", {}).get("doc_id", "نامشخص")
+            filename = chunk.get("filename") or chunk.get("metadata", {}).get("filename") or str(doc_id)
             page_number = chunk.get("page_number") or chunk.get("metadata", {}).get("page_number", 0)
             score = chunk.get("similarity") if chunk.get("similarity") is not None else chunk.get("score", 0.0)
             text = chunk.get("text", "")
@@ -171,7 +172,7 @@ class AnswerGenerator:
 
             citation_obj = Citation(
                 doc_id=str(doc_id),
-                filename=str(doc_id),
+                filename=str(filename),
                 page_number=int(page_number),
                 score=round(float(score), 3),
                 snippet=snippet.strip()

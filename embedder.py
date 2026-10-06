@@ -93,6 +93,7 @@ class Embedder:
             # ذخیره متادیتاهای کاربردی در کنار بردار
             metadatas.append({
                 "doc_id": chunk.doc_id,
+                "filename": getattr(chunk, "filename", ""),
                 "chunk_index": chunk.chunk_index,
                 "page_number": chunk.page_number,
                 "char_start": chunk.char_start,

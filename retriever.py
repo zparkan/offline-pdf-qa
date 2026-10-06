@@ -96,7 +96,7 @@ class Retriever:
         chat_id: Union[int, str],
         top_k: int = 4,
         filter_doc_ids: Optional[Union[int, str, List[Union[int, str]]]] = None,
-        min_similarity: float = 0.70,
+        min_similarity: float = 0.84,
         verbose: bool = True
     ) -> Dict[str, Any]:
         """
@@ -271,11 +271,15 @@ class Retriever:
             print(f"[Retriever]  └─ {len(bm25_ranks)} کاندید واژگانی در {t_bm25:.1f} میلی‌ثانیه یافت شد.")
 
         # ---------------------------------------------------------
-        # فاز ۳: ادغام رتبه‌ها با فرمول RRF (Reciprocal Rank Fusion)
+        # فاز ۳: ادغام رتبه‌ها با فرمول رتبه‌بندی معکوس وزن‌دار (Weighted RRF)
+        # اعمال اولویت‌بندی معنایی: ۷۵٪ وزن معنایی و ۲۵٪ مهر تایید واژگانی
         # ---------------------------------------------------------
         t_rrf_start = time.perf_counter()
+        dense_weight = 0.75
+        bm25_weight = 0.25
+
         if verbose:
-            print(f"[Retriever] ⚖️ فاز ۳: ادغام رتبه‌ها با فرمول RRF (k={self.rrf_k})...")
+            print(f"[Retriever] ⚖️ فاز ۳: ادغام رتبه‌ها با Weighted RRF (وزن معنایی: {dense_weight}، وزن واژگانی: {bm25_weight}، k={self.rrf_k})...")
 
         scored_chunks: List[Dict[str, Any]] = []
 
@@ -283,12 +287,11 @@ class Retriever:
             r_dense = dense_ranks.get(cid)
             r_bm25 = bm25_ranks.get(cid)
 
-            # فرمول RRF: 1 / (k + rank)
             rrf_score = 0.0
             if r_dense is not None:
-                rrf_score += 1.0 / (self.rrf_k + r_dense)
+                rrf_score += dense_weight * (1.0 / (self.rrf_k + r_dense))
             if r_bm25 is not None:
-                rrf_score += 1.0 / (self.rrf_k + r_bm25)
+                rrf_score += bm25_weight * (1.0 / (self.rrf_k + r_bm25))
 
             item["score"] = round(rrf_score, 6)
             scored_chunks.append(item)
@@ -300,7 +303,7 @@ class Retriever:
         top_chunks = scored_chunks[:top_k]
 
         # ---------------------------------------------------------
-        # فاز ۴: اعتبارسنجی ارتباط پاسخ (Relevance Thresholding)
+        # فاز ۴: اعتبارسنجی ارتباط پاسخ (Relevance Thresholding & Verification)
         # ---------------------------------------------------------
         # محاسبه بیشترین شباهت معنایی موجود در نتایج برتر
         max_similarity = 0.0
@@ -311,13 +314,19 @@ class Retriever:
         # بررسی وجود تطابق واژگانی (BM25) در چانک‌های برتر
         has_bm25_match = any(c.get("bm25_rank") is not None for c in top_chunks)
 
-        # اگر شباهت کمتر از آستانه بود و هیچ کلمه کلیدی هم مچ نشد -> پاسخ در اسناد نیست
-        has_relevant_context = (max_similarity >= min_similarity) or has_bm25_match
+        # منطق تفکیک ارتباط:
+        # ۱. شباهت معنایی قوی (بزرگتر یا مساوی آستانه) -> تایید قطعی ارتباط
+        # ۲. شباهت معنایی مرزی (بین ۰.۸۲ تا آستانه) همراه با تطابق واژگانی (مهر تایید) -> تایید ارتباط
+        # ۳. در غیر این صورت (عدم ارتباط یا سوالات متفرقه مثل کیک هویج) -> نامرتبط و فعال‌سازی Fast Exit
+        is_strong_semantic = max_similarity >= min_similarity
+        is_marginal_with_lexical = (max_similarity >= 0.82) and has_bm25_match
+
+        has_relevant_context = is_strong_semantic or is_marginal_with_lexical
 
         total_elapsed = (time.perf_counter() - start_time) * 1000
         if verbose:
             status_text = "مرتبط است ✓" if has_relevant_context else "نامرتبط با اسناد ❌"
-            print(f"[Retriever] ✅ بازیابی موفق: {len(top_chunks)} چانک برتر در {total_elapsed:.1f} میلی‌ثانیه انتخاب شدند. وضعیت ارتباط: {status_text} (بیشترین شباهت: {max_similarity})")
+            print(f"[Retriever] ✅ بازیابی موفق: {len(top_chunks)} چانک برتر در {total_elapsed:.1f} میلی‌ثانیه انتخاب شدند. وضعیت ارتباط: {status_text} (بیشترین شباهت: {max_similarity:.4f})")
             for i, chunk in enumerate(top_chunks, start=1):
                 d_rank = f"D#{chunk['dense_rank']}" if chunk['dense_rank'] else "D#--"
                 b_rank = f"B#{chunk['bm25_rank']}" if chunk['bm25_rank'] else "B#--"

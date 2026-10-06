@@ -31,6 +31,7 @@ class DocumentChunk:
     page_number: int        # شماره صفحه مبدا - الزامی برای citation
     char_start: int          # موقعیت شروع در متن اصلی صفحه
     char_end: int             # موقعیت پایان در متن اصلی صفحه
+    filename: str = ""        # نام واقعی فایل سند جهت نمایش در مراجع و ارجاعات
 
     def to_dict(self) -> dict:
         return asdict(self)
