@@ -488,6 +488,7 @@ def chat_page(chat_id: int):
                         text_input.focus()
 
                 text_input.on('keydown.enter.exact.prevent', send_msg)
+                text_input.on('keydown.enter.shift', lambda e: None)
                 send_btn.on('click', send_msg)
 
 
