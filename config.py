@@ -9,14 +9,18 @@ from model_manager import ModelManager
 # =====================================================================
 BASE_DIR = Path(__file__).resolve().parent
 MODELS_ROOT = BASE_DIR / "models"
+EMBEDDING_DIR = MODELS_ROOT / "embedding"
+LLM_DIR = MODELS_ROOT / "llm"
 DB_DIR = BASE_DIR / "chroma_db"
 DB_INFO_FILE = DB_DIR / "db_info.json"
 
 # پوشه داده‌ها (برای چانک‌ها، PDFها و ذخیره‌سازی داده‌های استخراج شده فاطمه)
 DATA_DIR = BASE_DIR / "data"
 
-# مسیر پایگاه داده چت‌ها (نام موقت: chat_history.db - بعد از پیاده‌سازی نهایی بررسی شود)
-CHAT_DB_FILE = BASE_DIR / "chat_history.db"
+# مسیر پایگاه داده چت‌ها (هماهنگ با chat_database.py در پوشه database)
+DATABASE_DIR = BASE_DIR / "database"
+DATABASE_DIR.mkdir(parents=True, exist_ok=True)
+CHAT_DB_FILE = DATABASE_DIR / "chat_history.db"
 
 # پورت سرور وب رابط کاربری (پورت 8050 انتخاب شد تا با Connect.exe و پورت 8080 تداخل نداشته باشد)
 SERVER_PORT = 8050
@@ -114,10 +118,20 @@ EMBEDDING_MODELS = {
 # ۳. ریجستری مدل‌های زبانی (فقط مبتنی بر llama-cpp و فایل‌های GGUF)
 # =====================================================================
 LLM_MODELS = {
+    "qwen-0.5b": {
+        "repo": "Qwen/Qwen2.5-0.5B-Instruct-GGUF",
+        "filename": "qwen2.5-0.5b-instruct-q4_k_m.gguf",
+        "desc": "مدل فوق‌العاده سبک ۵۰۰ میلیون پارامتری (~۳۹۰ مگابایت) برای دانلود سریع و تست فوری"
+    },
+    "qwen-1.5b": {
+        "repo": "Qwen/Qwen2.5-1.5B-Instruct-GGUF",
+        "filename": "qwen2.5-1.5b-instruct-q4_k_m.gguf",
+        "desc": "مدل سبک و بهینه ۱.۵ میلیاردی (~۹۸۰ مگابایت) با کیفیت مناسب روی CPU"
+    },
     "qwen-3b": {
         "repo": "Qwen/Qwen2.5-3B-Instruct-GGUF",
         "filename": "qwen2.5-3b-instruct-q4_k_m.gguf",
-        "desc": "کوئن ۲.۵ سه میلیارد پارامتری سبک، سریع برای اجرای یکپارچه"
+        "desc": "کوئن ۲.۵ سه میلیارد پارامتری (~۱.۹ گیگابایت)، کیفیت عالی برای اجرای یکپارچه"
     },
     "qwen-7b": {
         "repo": "Qwen/Qwen2.5-7B-Instruct-GGUF",
@@ -140,7 +154,7 @@ LLM_MODELS = {
 # ۴. انتخاب مدل‌های فعال (Active Selection)
 # =====================================================================
 ACTIVE_EMBEDDING = "e5-small"  # مدل امبدینگ فعال: e5-small برای سبکی و سرعت
-ACTIVE_LLM = "qwen-3b"        # مدل زبانی فعال یکپارچه با llama-cpp
+ACTIVE_LLM = "qwen-1.5b"       # مدل زبانی فعال یکپارچه با llama-cpp (کوئن ۱.۵ میلیارد)
 
 # =====================================================================
 # ۵. تنظیمات قطعه‌بندی اسناد (Document Chunking Configuration)
@@ -297,26 +311,39 @@ def set_active_embedding(new_model_key: str) -> bool:
 
     return True
 
+def set_active_llm(new_model_key: str) -> bool:
+    """
+    توضیح:
+        تنظیم مدل زبانی فعال (LLM).
+    ورودی:
+        new_model_key (str): نام کلید مدل از لیست LLM_MODELS (مثلاً 'qwen-0.5b' یا 'qwen-1.5b')
+    """
+    global ACTIVE_LLM
+    if new_model_key not in LLM_MODELS:
+        print(f"[!] مدل زبانی '{new_model_key}' در لیست LLM_MODELS یافت نشد.")
+        return False
+    ACTIVE_LLM = new_model_key
+    print(f"[*] مدل زبانی فعال روی '{new_model_key}' تنظیم شد.")
+    return True
+
+def get_active_llm_path() -> Path:
+    """مسیر فایل وزن مدل زبانی فعال در سیستم محلی."""
+    llm_info = LLM_MODELS.get(ACTIVE_LLM, {})
+    filename = llm_info.get("filename", "")
+    return LLM_DIR / filename
+
+def get_active_embedding_path() -> Path:
+    """مسیر پوشه مدل امبدینگ فعال در سیستم محلی."""
+    return EMBEDDING_DIR / ACTIVE_EMBEDDING
+
 def setup_infrastructure():
     """
     توضیح:
-        بررسی آماده بودن فایل‌های مدل امبدینگ و مدل زبانی (GGUF محلی).
+        بررسی و آماده‌سازی فایل‌های مدل امبدینگ و مدل زبانی (GGUF محلی) از طریق ModelManager.
     """
     manager = ModelManager(root_dir=MODELS_ROOT)
-
-    # بررسی مدل امبدینگ فعال
-    emb_info = EMBEDDING_MODELS[ACTIVE_EMBEDDING]
-    success, msg, _ = manager.get_embedding_model(emb_info["repo_id"], ACTIVE_EMBEDDING)
-    print(f"[*] وضعیت مدل امبدینگ ({ACTIVE_EMBEDDING}): {msg}")
-
-    # بررسی مدل زبانی فعال به صورت فایل محلی GGUF یکپارچه
-    llm_info = LLM_MODELS[ACTIVE_LLM]
-    success, msg, _ = manager.setup_llm(
-        mode="local",
-        model_name_or_repo=llm_info["repo"],
-        filename=llm_info.get("filename")
-    )
-    print(f"[*] وضعیت مدل زبانی ({ACTIVE_LLM}): {msg}")
+    return manager.ensure_active_models()
 
 if __name__ == "__main__":
     setup_infrastructure()
+

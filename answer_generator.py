@@ -86,7 +86,8 @@ class AnswerGenerator:
         temperature: float = 0.1,
         max_tokens: int = 512,
         n_ctx: int = 2048,
-        mock_mode: bool = False
+        mock_mode: bool = False,
+        auto_download: bool = False
     ):
         """
         مقداردهی اولیه ماژول تولید پاسخ.
@@ -102,11 +103,12 @@ class AnswerGenerator:
         """
         self.retriever = retriever or Retriever()
         self.prompt_builder = prompt_builder or PromptBuilder()
-        self.model_name = model_name or getattr(config, "ACTIVE_LLM", "qwen-3b")
+        self.model_name = model_name or getattr(config, "ACTIVE_LLM", "qwen-1.5b")
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.n_ctx = n_ctx
         self.mock_mode = mock_mode
+        self.auto_download = auto_download
 
         self.llm = None
         self.is_loaded = False
@@ -132,12 +134,30 @@ class AnswerGenerator:
             return False
 
         filename = model_info.get("filename")
-        model_path = getattr(config, "LLM_DIR", Path("models/llm")) / filename
+        repo_id = model_info.get("repo")
+        llm_dir = getattr(config, "LLM_DIR", Path("models/llm"))
+        model_path = llm_dir / filename
 
         if not model_path.exists():
-            print(f"[AnswerGenerator] ⚠️ فایل وزن مدل در '{model_path}' یافت نشد. فعال‌سازی Mock Mode.")
-            self.mock_mode = True
-            return False
+            if self.auto_download:
+                print(f"[AnswerGenerator] ⚠️ فایل وزن مدل در '{model_path}' یافت نشد. در حال دریافت خودکار...")
+                from model_manager import ModelManager
+                manager = ModelManager(root_dir=getattr(config, "MODELS_ROOT", "models"))
+                success, msg, local_path = manager.setup_llm(
+                    mode="local",
+                    model_name_or_repo=repo_id,
+                    filename=filename
+                )
+                if success and local_path and Path(local_path).exists():
+                    model_path = Path(local_path)
+                else:
+                    print(f"[AnswerGenerator] ⚠️ امکان بارگذاری یا دانلود فایل مدل فراهم نشد ({msg}). فعال‌سازی Mock Mode.")
+                    self.mock_mode = True
+                    return False
+            else:
+                print(f"[AnswerGenerator] ℹ️ فایل وزن مدل در '{model_path}' موجود نیست. فعال‌سازی Mock Mode.")
+                self.mock_mode = True
+                return False
 
         try:
             # محاسبه تعداد بهینه ترد‌های پردازنده
@@ -240,9 +260,10 @@ class AnswerGenerator:
                 err_msg = f"⚠️ خطا در تولید پاسخ با مدل زبانی: {e}"
                 yield StreamChunk(type="token", content=err_msg).to_dict()
         else:
-            # حالت شبیه‌ساز (Mock Mode): تولید پاسخ هوشمندانه تستی از روی چانک اول
+            # حالت شبیه‌ساز (Mock Mode): در صورتی که فایل وزن مدل هنوز دانلود نشده باشد
             best_chunk_text = top_chunks[0].get("text", "") if top_chunks else ""
             mock_reply = (
+                f"⚠️ [توجه: مدل زبانی هنوز دانلود نشده و سیستم در حالت شبیه‌ساز است]\n\n"
                 f"بر اساس اسناد ارائه‌شده (صفحه {top_chunks[0].get('page_number', 1)}):\n"
                 f"{best_chunk_text.strip()}"
             )

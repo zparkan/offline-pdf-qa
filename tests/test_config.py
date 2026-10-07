@@ -6,9 +6,17 @@
 ۳. تست منطق تغییر مدل امبدینگ و پاکسازی پایگاه داده برداری
 """
 
+import sys
 import os
 import json
 import sqlite3
+
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 import config
 
 def run_config_test():
@@ -30,14 +38,11 @@ def run_config_test():
     assert hasattr(config, "CHAT_DB_FILE"), "متغیر CHAT_DB_FILE در کانفیگ وجود ندارد"
     print(f"[✓] تست ۲: مسیرها تعریف شده‌اند:\n    - Data: {config.DATA_DIR}\n    - Chat DB: {config.CHAT_DB_FILE}")
 
-    # تست ۳: شبیه‌سازی ایجاد دیتابیس چت تستی برای اطمینان از منطق پاکسازی
-    test_db = config.CHAT_DB_FILE
-    conn = sqlite3.connect(test_db)
-    cur = conn.cursor()
-    cur.execute("CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY, text TEXT);")
-    cur.execute("INSERT INTO messages (text) VALUES ('پیام آزمایشی');")
-    conn.commit()
-    conn.close()
+    # تست ۳: شبیه‌سازی ایجاد چت و پیام تستی برای اطمینان از منطق پاکسازی
+    import chat_database as cdb
+    cdb.initialize_database()
+    test_chat_id = cdb.create_chat("گفتگوی آزمایشی")
+    cdb.add_message(test_chat_id, "user", "پیام آزمایشی برای تست پاکسازی")
 
     # ایجاد فایل شناسنامه دیتابیس برداری با مدل اولیه e5-base
     config.save_db_info("e5-base")
@@ -55,16 +60,18 @@ def run_config_test():
         print(f"[X] تست ۴ ناموفق: مدل دیتابیس به جای bge-m3 مقدار {current_model} دارد.")
 
     # بررسی اینکه اطلاعات دیتابیس چت پاک شده باشد اما جدول باقی مانده باشد
-    conn = sqlite3.connect(test_db)
-    cur = conn.cursor()
-    cur.execute("SELECT COUNT(*) FROM messages;")
-    count = cur.fetchone()[0]
-    conn.close()
+    with cdb.get_connection() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) FROM messages;")
+        count = cur.fetchone()[0]
 
     if count == 0:
         print("[✓] تست ۵: اطلاعات درون جدول دیتابیس چت پاک شد (جدول سالم ماند).")
     else:
         print(f"[X] تست ۵ ناموفق: سطرها پاک نشدند (تعداد: {count}).")
+
+    # بازگردانی مدل فعال به e5-small
+    config.set_active_embedding("e5-small")
 
     print("\n=== تمام تست‌های کانفیگ با موفقیت سپری شدند! ===")
 

@@ -58,6 +58,10 @@ def initialize_system():
     config.DATA_DIR.mkdir(parents=True, exist_ok=True)
     config.DB_DIR.mkdir(parents=True, exist_ok=True)
 
+    # بررسی و آماده‌سازی مدل‌های هوش مصنوعی (امبدینگ و زبانی فعال)
+    print("[*] در حال بررسی و آماده‌سازی مدل‌های هوش مصنوعی...")
+    config.setup_infrastructure()
+
     print("[*] در حال آماده‌سازی لایه ارکستراتور و بررسی پایگاه برداری...")
     orch = get_orchestrator()
     print(f"[✓] اتصال به پایگاه برداری ChromaDB برقرار شد.")

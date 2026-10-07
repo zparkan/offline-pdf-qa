@@ -7,3 +7,7 @@ pymupdf>=1.23.0
 pydantic>=2.0.0
 hazm>=0.10.0
 nicegui>=1.4.0
+huggingface-hub>=0.20.0
+# Note for Windows without C++ compiler:
+# pip install llama-cpp-python --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
+llama-cpp-python>=0.2.75
