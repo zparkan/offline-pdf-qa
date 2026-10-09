@@ -213,10 +213,11 @@ class ModelManager:
         else:
             return False, f"حالت نامعتبر: {mode}", None
 
-    def ensure_active_models(self) -> Dict[str, Any]:
+    def ensure_active_models(self, auto_download_llm: Optional[bool] = None) -> Dict[str, Any]:
         """
         بررسی خودکار و جامع مدل‌های فعال پروژه بر اساس config.py.
-        اگر هر یک از مدل‌های فعال (امبدینگ یا زبانی) در سیستم موجود نباشند، خودکار آماده می‌شوند.
+        اگر فایل مدل موجود نباشد و دانلود خودکار غیرفعال باشد، سیستم به صورت آزمایشی (Mock Mode) بالا می‌آید
+        تا کاربر بدون گیر کردن در دانلود و فیلترینگ اینترنت بتواند برنامه را تست کند.
         """
         import config
         status_report = {}
@@ -240,18 +241,38 @@ class ModelManager:
         # ۲. بررسی مدل زبانی فعال
         llm_key = config.ACTIVE_LLM
         llm_info = config.LLM_MODELS.get(llm_key, {})
+        should_download = auto_download_llm if auto_download_llm is not None else getattr(config, "AUTO_DOWNLOAD_LLM", True)
+
         if llm_info:
-            success, msg, path = self.setup_llm(
-                mode="local",
-                model_name_or_repo=llm_info["repo"],
-                filename=llm_info.get("filename")
-            )
-            status_report["llm"] = {
-                "success": success,
-                "key": llm_key,
-                "msg": msg,
-                "path": path
-            }
-            print(f"[*] وضعیت مدل زبانی فعال ({llm_key}): {msg}")
+            target_file = self.llm_dir / llm_info.get("filename", "")
+            if target_file.exists() and target_file.stat().st_size > 1024 * 1024:
+                status_report["llm"] = {
+                    "success": True,
+                    "key": llm_key,
+                    "msg": f"LOCAL READY: {target_file.name}",
+                    "path": str(target_file)
+                }
+                print(f"[✓] مدل زبانی محلی در دیسک آماده است: {target_file.name}")
+            elif not should_download:
+                status_report["llm"] = {
+                    "success": False,
+                    "key": llm_key,
+                    "msg": "فایل مدل هنوز در دیسک نیست (سیستم در حالت شبیه‌ساز Mock اجرا می‌شود)",
+                    "path": None
+                }
+                print(f"[*] فایل مدل زبانی '{llm_key}' یافت نشد. سیستم در حالت شبیه‌ساز (Mock Mode) اجرا می‌شود.")
+            else:
+                success, msg, path = self.setup_llm(
+                    mode="local",
+                    model_name_or_repo=llm_info["repo"],
+                    filename=llm_info.get("filename")
+                )
+                status_report["llm"] = {
+                    "success": success,
+                    "key": llm_key,
+                    "msg": msg,
+                    "path": path
+                }
+                print(f"[*] وضعیت مدل زبانی فعال ({llm_key}): {msg}")
 
         return status_report

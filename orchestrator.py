@@ -147,20 +147,31 @@ class Orchestrator:
         if not normalized_query:
             normalized_query = query.strip()
 
-        # ۲. واکشی تاریخچه پیام‌های چت
+        # ۲. واکشی تاریخچه پیام‌های واقعی چت (تفکیک پیام جاری که قبلاً در UI ثبت شده)
         raw_messages = db.get_messages(chat_id)
+        # در UI پیام کاربر قبل از فراخوانی استریم ذخیره شده، پس آخرین پیام همان پیام جاری است
+        previous_records = raw_messages[:-1] if len(raw_messages) > 1 else []
         chat_history = [
             {"role": m["role"], "content": m["content"]}
-            for m in raw_messages
+            for m in previous_records
             if m.get("content")
         ]
 
-        # ۳. دریافت استریم از پاسخ‌ساز RAG
+        # ۳. بازنویسی هوشمند سوال در صورت گفتگوی چندمرحله‌ای (Conversational Query Reformulation)
+        llm_instance = getattr(self.answer_generator, "llm", None) if getattr(self.answer_generator, "is_loaded", False) else None
+        retrieval_query = self.prompt_builder.rewrite_conversational_query(
+            current_query=normalized_query,
+            chat_history=chat_history,
+            llm=llm_instance
+        )
+
+        # ۴. دریافت استریم از پاسخ‌ساز RAG (جستجو با retrieval_query و پرامپت با normalized_query)
         async for packet in self.answer_generator.get_rag_response_stream(
             query=normalized_query,
             chat_id=chat_id,
             filter_doc_ids=filter_doc_ids,
-            chat_history=chat_history
+            chat_history=chat_history,
+            retrieval_query=retrieval_query
         ):
             yield packet
 

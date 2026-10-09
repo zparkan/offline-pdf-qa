@@ -106,13 +106,13 @@ def gallery_page():
 
                 color_swatches()
 
-                def save():
+                async def save():
                     if title_input.value:
                         new_id = db.create_chat(title=title_input.value.strip(), color=selected_color['hex'])
-                        # آماده‌سازی پوشه دیسک و کالکشن ChromaDB
+                        # آماده‌سازی پوشه دیسک و کالکشن ChromaDB در ترد پس‌زمینه بدون قفل کردن رابط کاربری
                         db.get_chat_data_dir(new_id)
                         orch = get_orchestrator()
-                        orch.vector_db.get_or_create_collection(new_id)
+                        await asyncio.to_thread(orch.vector_db.get_or_create_collection, new_id)
                         dialog.close()
                         ui.navigate.to(f'/chat/{new_id}')
 
@@ -162,9 +162,9 @@ def gallery_page():
                                         with ui.row().classes('w-full justify-end gap-2 mt-4'):
                                             ui.button('انصراف', on_click=d.close).props('flat color=grey')
 
-                                            def do_delete():
+                                            async def do_delete():
                                                 orch = get_orchestrator()
-                                                orch.delete_chat(chat_to_del['id'])
+                                                await asyncio.to_thread(orch.delete_chat, chat_to_del['id'])
                                                 d.close()
                                                 render_cards.refresh()
                                             ui.button('حذف', on_click=do_delete).props('unelevated color=negative')
@@ -337,9 +337,9 @@ def chat_page(chat_id: int):
                                         ui.label(f['filename']).classes('text-xs font-bold text-slate-200 truncate')
                                         ui.label(f'وضعیت: {f["status"]}').classes('text-[10px] text-emerald-400')
 
-                                def delete_f(f_id=f['id'], f_name=f['filename']):
+                                async def delete_f(f_id=f['id'], f_name=f['filename']):
                                     orch = get_orchestrator()
-                                    orch.delete_document(chat_id, f_name, f_id)
+                                    await asyncio.to_thread(orch.delete_document, chat_id, f_name, f_id)
                                     files_container.refresh()
 
                                 ui.button(icon='delete', on_click=delete_f).props('flat round color=negative size=xs')

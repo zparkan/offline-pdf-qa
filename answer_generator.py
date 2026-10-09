@@ -86,6 +86,7 @@ class AnswerGenerator:
         temperature: float = 0.1,
         max_tokens: int = 512,
         n_ctx: int = 2048,
+        n_gpu_layers: Optional[int] = None,
         mock_mode: bool = False,
         auto_download: bool = False
     ):
@@ -99,6 +100,7 @@ class AnswerGenerator:
             temperature: دمای تولید متن (پیش‌فرض ۰.۱ برای حداقل توهم و دقت استنادی بالا).
             max_tokens: سقف تعداد توکن‌های تولیدی.
             n_ctx: اندازه پنجره زمینه مدل زبانی.
+            n_gpu_layers: تعداد لایه‌های بارگذاری‌شده روی GPU (-1 یعنی تمام لایه‌ها).
             mock_mode: فعال‌سازی دستی حالت شبیه‌ساز (برای تست‌های سریع بدون بارگذاری مدل).
         """
         self.retriever = retriever or Retriever()
@@ -107,6 +109,7 @@ class AnswerGenerator:
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.n_ctx = n_ctx
+        self.n_gpu_layers = n_gpu_layers if n_gpu_layers is not None else getattr(config, "LLM_GPU_LAYERS", -1 if getattr(config, "IS_COLAB", False) else 0)
         self.mock_mode = mock_mode
         self.auto_download = auto_download
 
@@ -120,7 +123,7 @@ class AnswerGenerator:
     def _load_llm(self) -> bool:
         """
         بارگذاری مدل زبانی کوانتیزه‌شده از پوشه models/llm با استفاده از llama-cpp-python.
-        در صورت عدم وجود کتابخانه یا فایل مدل، سیستم به طور خودکار به حالت Mock سوئیچ می‌کند.
+        پشتیبانی از شتاب‌دهنده سخت‌افزاری GPU (VRAM) جهت رفع کندی شدید در محیط‌هایی مانند Google Colab.
         """
         if not LLAMA_AVAILABLE:
             print("[AnswerGenerator] ⚠️ کتابخانه llama-cpp-python نصب نیست. حالت شبیه‌ساز (Mock Mode) فعال شد.")
@@ -162,13 +165,28 @@ class AnswerGenerator:
         try:
             # محاسبه تعداد بهینه ترد‌های پردازنده
             threads = max(1, (os.cpu_count() or 4) - 1)
-            print(f"[AnswerGenerator] ⏳ در حال بارگذاری مدل '{self.model_name}' از '{model_path}'...")
-            self.llm = Llama(
-                model_path=str(model_path),
-                n_ctx=self.n_ctx,
-                n_threads=threads,
-                verbose=False
-            )
+            print(f"[AnswerGenerator] ⏳ در حال بارگذاری مدل '{self.model_name}' از '{model_path}' (لایه‌های GPU: {self.n_gpu_layers})...")
+            try:
+                self.llm = Llama(
+                    model_path=str(model_path),
+                    n_ctx=self.n_ctx,
+                    n_threads=threads,
+                    n_gpu_layers=self.n_gpu_layers,
+                    verbose=False
+                )
+            except Exception as gpu_err:
+                if self.n_gpu_layers != 0:
+                    print(f"[AnswerGenerator] ⚠️ بارگذاری با لایه‌های گرافیکی ناموفق بود ({gpu_err}). تلاش برای اجرای مجدد روی CPU...")
+                    self.llm = Llama(
+                        model_path=str(model_path),
+                        n_ctx=self.n_ctx,
+                        n_threads=threads,
+                        n_gpu_layers=0,
+                        verbose=False
+                    )
+                else:
+                    raise gpu_err
+
             self.is_loaded = True
             print(f"[AnswerGenerator] ✅ مدل زبانی '{self.model_name}' با موفقیت لود شد.")
             return True
@@ -206,14 +224,18 @@ class AnswerGenerator:
         query: str,
         chat_id: Union[int, str],
         filter_doc_ids: Optional[List[str]] = None,
-        chat_history: Optional[List[Dict[str, str]]] = None
+        chat_history: Optional[List[Dict[str, str]]] = None,
+        retrieval_query: Optional[str] = None
     ) -> Generator[Dict[str, Any], None, None]:
         """
         تولید استریم همگام (Synchronous Generator) پاسخ و مراجع.
+        در صورت ارسال retrieval_query (پرسش بازنویسی‌شده برای گفتگوی چندمرحله‌ای)،
+        جستجو در دیتابیس برداری با آن انجام می‌شود و پرسش اصلی کاربر به پرامپت تحویل می‌گردد.
         """
-        # ۱. بازیابی چانک‌های مرتبط با ریتریور ترکیبی
+        # ۱. بازیابی چانک‌های مرتبط با ریتریور ترکیبی (با سوال غنی‌شده در صورت وجود)
+        search_query = retrieval_query or query
         retrieval_res = self.retriever.retrieve(
-            query_text=query,
+            query_text=search_query,
             chat_id=chat_id,
             filter_doc_ids=filter_doc_ids
         )
@@ -278,24 +300,36 @@ class AnswerGenerator:
         query: str,
         chat_id: Union[int, str],
         filter_doc_ids: Optional[List[str]] = None,
-        chat_history: Optional[List[Dict[str, str]]] = None
+        chat_history: Optional[List[Dict[str, str]]] = None,
+        retrieval_query: Optional[str] = None
     ) -> AsyncGenerator[Dict[str, Any], None]:
         """
         تولید استریم ناهمگام (AsyncGenerator) هماهنگ با قرارداد رسمی فرانت‌اند با بک‌اند.
+        عملیات سنگین استنتاج مدل زبانی در یک ترد پس‌زمینه (Worker Thread) اجرا می‌شود تا
+        Event Loop سرور مسدود نشود و دکمه‌ها و رابط کاربری کاملاً روان و بدون لگ عمل کنند.
         """
-        # اجرای تولید به صورت استریم زنده
-        loop = asyncio.get_event_loop()
         gen = self.generate_stream(
             query=query,
             chat_id=chat_id,
             filter_doc_ids=filter_doc_ids,
-            chat_history=chat_history
+            chat_history=chat_history,
+            retrieval_query=retrieval_query
         )
 
-        # تبدیل ژنراتور همگام به استریم ناهمگام برای فرانت‌اند
-        for item in gen:
+        sentinel = object()
+
+        def get_next():
+            try:
+                return next(gen)
+            except StopIteration:
+                return sentinel
+
+        while True:
+            item = await asyncio.to_thread(get_next)
+            if item is sentinel:
+                break
             yield item
-            await asyncio.sleep(0.01)
+            await asyncio.sleep(0.005)
 
     def generate_response(
         self,

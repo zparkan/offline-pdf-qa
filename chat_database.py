@@ -1,9 +1,16 @@
 import sqlite3
 from pathlib import Path
 from contextlib import contextmanager
- 
- 
-# ============================================================
+from datetime import datetime, timezone, timedelta
+
+# منطقه زمانی رسمی ایران (تهران) جهت ثبت دقیق ساعت بدون وابستگی به ساعت سرور/کولب
+IRAN_TZ = timezone(timedelta(hours=3, minutes=30))
+
+
+def get_current_local_time_str() -> str:
+    """دریافت زمان فعلی بر حسب ساعت رسمی ایران (تهران) با فرمت استاندارد دیتابیس."""
+    return datetime.now(IRAN_TZ).strftime("%Y-%m-%d %H:%M:%S")
+
 # Database Path
 # ============================================================
  
@@ -123,12 +130,13 @@ def create_chat(title="New Chat", color=None):
     """
     if color is None:
         color = DEFAULT_CHAT_COLOR
+    now_str = get_current_local_time_str()
  
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
-            "INSERT INTO chats (title, color) VALUES (?, ?)",
-            (title, color)
+            "INSERT INTO chats (title, color, created_at, updated_at) VALUES (?, ?, ?, ?)",
+            (title, color, now_str, now_str)
         )
         return cursor.lastrowid
  
@@ -153,14 +161,15 @@ def get_chat_by_id(chat_id):
  
  
 def rename_chat(chat_id, new_title):
+    now_str = get_current_local_time_str()
     with get_connection() as conn:
         conn.execute(
             """
             UPDATE chats
-            SET title = ?, updated_at = CURRENT_TIMESTAMP
+            SET title = ?, updated_at = ?
             WHERE id = ?
             """,
-            (new_title, chat_id)
+            (new_title, now_str, chat_id)
         )
  
  
@@ -174,21 +183,22 @@ def delete_chat(chat_id):
 # ============================================================
  
 def add_message(chat_id, role, content):
+    now_str = get_current_local_time_str()
     with get_connection() as conn:
         conn.execute(
             """
-            INSERT INTO messages (chat_id, role, content)
-            VALUES (?, ?, ?)
+            INSERT INTO messages (chat_id, role, content, created_at)
+            VALUES (?, ?, ?, ?)
             """,
-            (chat_id, role, content)
+            (chat_id, role, content, now_str)
         )
         conn.execute(
             """
             UPDATE chats
-            SET updated_at = CURRENT_TIMESTAMP
+            SET updated_at = ?
             WHERE id = ?
             """,
-            (chat_id,)
+            (now_str, chat_id)
         )
  
  
@@ -212,14 +222,15 @@ def get_messages(chat_id):
 # ============================================================
  
 def add_file(chat_id, filename, stored_path, status="pending"):
+    now_str = get_current_local_time_str()
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
             """
-            INSERT INTO files (chat_id, filename, stored_path, status)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO files (chat_id, filename, stored_path, status, created_at)
+            VALUES (?, ?, ?, ?, ?)
             """,
-            (chat_id, filename, stored_path, status)
+            (chat_id, filename, stored_path, status, now_str)
         )
         return cursor.lastrowid
  

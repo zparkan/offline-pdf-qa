@@ -107,7 +107,7 @@ class Retriever:
         chat_id: Union[int, str],
         top_k: int = 4,
         filter_doc_ids: Optional[Union[int, str, List[Union[int, str]]]] = None,
-        min_similarity: float = 0.84,
+        min_similarity: float = 0.78,
         verbose: bool = True
     ) -> Dict[str, Any]:
         """
@@ -325,14 +325,20 @@ class Retriever:
         # بررسی وجود تطابق واژگانی (BM25) در چانک‌های برتر
         has_bm25_match = any(c.get("bm25_rank") is not None for c in top_chunks)
 
-        # منطق تفکیک ارتباط:
-        # ۱. شباهت معنایی قوی (بزرگتر یا مساوی آستانه) -> تایید قطعی ارتباط
-        # ۲. شباهت معنایی مرزی (بین ۰.۸۲ تا آستانه) همراه با تطابق واژگانی (مهر تایید) -> تایید ارتباط
-        # ۳. در غیر این صورت (عدم ارتباط یا سوالات متفرقه مثل کیک هویج) -> نامرتبط و فعال‌سازی Fast Exit
-        is_strong_semantic = max_similarity >= min_similarity
-        is_marginal_with_lexical = (max_similarity >= 0.82) and has_bm25_match
+        # منطق اعتبارسنجی ارتباط پاسخ (Hybrid Relevance Verification):
+        # ۱. شباهت معنایی قوی (بزرگتر یا مساوی min_similarity، پیش‌فرض 0.78) -> تایید قطعی ارتباط
+        # ۲. شباهت معنایی همراه با تطابق واژگانی BM25 (حداقل 0.48) -> تایید ارتباط
+        # ۳. افت نسبی نمره (Score Gap): در صورت وجود فاصله معنی‌دار چانک برتر از بقیه چانک‌ها (بیش از 0.08)
+        # ۴. در غیر این صورت (سوالات نامربوط بدون تطابق کلمات کلیدی) -> فعال‌سازی Fast Exit
+        sim_scores = [c["similarity"] for c in top_chunks if c.get("similarity") is not None]
+        has_score_gap = False
+        if len(sim_scores) >= 2 and max_similarity >= 0.70:
+            has_score_gap = (max_similarity - sim_scores[1]) >= 0.08
 
-        has_relevant_context = is_strong_semantic or is_marginal_with_lexical
+        is_strong_semantic = max_similarity >= min_similarity
+        is_marginal_with_lexical = (max_similarity >= 0.48) and has_bm25_match
+
+        has_relevant_context = is_strong_semantic or is_marginal_with_lexical or has_score_gap
 
         total_elapsed = (time.perf_counter() - start_time) * 1000
         if verbose:

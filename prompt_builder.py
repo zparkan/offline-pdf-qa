@@ -27,13 +27,13 @@ if hasattr(sys.stdout, "reconfigure"):
         pass
 
 
-# دستورالعمل سیستمی پیش‌فرض برای مهار توهم و هدایت مدل زبانی
+# دستورالعمل سیستمی پیش‌فرض برای مهار توهم و هدایت دقیق مدل زبانی
 DEFAULT_SYSTEM_INSTRUCTION = """تو یک دستیار هوشمند، متعهد و امانت‌دار برای پاسخ‌گویی به سوالات بر اساس اسناد شخصی کاربر هستی.
 
 وظیفه تو این است که فقط و فقط بر اساس «زمینه‌ها و اسناد مرجع» ارائه‌شده در پیام کاربر پاسخ دهی.
 حتماً قوانین زیر را بدون استثنا رعایت کن:
-۱. فقط از حقایق و اطلاعات موجود در متون ارائه‌شده استفاده کن. هرگز از دانسته‌های قبلی خود چیزی را حدس نزن یا اضافه نکن.
-۲. اگر پاسخ سوال به صراحت در اسناد ذکر نشده است یا اسناد برای پاسخ ناکافی هستند، صراحتاً بگو: «پاسخی برای این پرسش در اسناد بارگذاری‌شده شما یافت نشد.» و هیچ اطلاعات ساختگی ارائه نده.
+۱. فقط از حقایق و اطلاعات موجود در متون ارائه‌شده استفاده کن. استنتاج منطقی و تلخیص از محتوای اسناد مجاز و مطلوب است، اما هرگز از دانسته‌های بیرونی چیزی را حدس نزن یا اطلاعات ساختگی اضافه نکن.
+۲. تنها در صورتی که موضوع و پاسخ سوال کلاً در اسناد ارائه‌شده پوشش داده نشده باشد، صراحتاً بگو: «پاسخی برای این پرسش در اسناد بارگذاری‌شده شما یافت نشد.»
 ۳. در انتهای هر ادعا یا پاسخ، حتماً نام سند و شماره صفحه منبع را ذکر کن (مثال: [سند: قرارداد.pdf، صفحه: ۳]).
 ۴. پاسخ باید خلاصه، مستند، منسجم، روان و کاملاً به زبان فارسی باشد."""
 
@@ -235,3 +235,80 @@ class PromptBuilder:
             return len(retriever_result_or_chunks) > 0
 
         return False
+
+    def rewrite_conversational_query(
+        self,
+        current_query: str,
+        chat_history: Optional[List[Dict[str, str]]] = None,
+        llm: Optional[Any] = None
+    ) -> str:
+        """
+        بازنویسی هوشمند سوال برای بازیابی در مکالمات چندمرحله‌ای (Conversational Query Reformulation).
+        اگر سوال کاربر ارجاعی به پیام‌های قبلی باشد (مانند: «گام‌ها رو بگو»، «بیشتر بگو»، «مورد دوم چیه»)،
+        سوال را با موضوع و کلمات کلیدی پیام‌های پیشین غنی و مستقل می‌کند تا ریتریور چانک‌های دقیق را پیدا کند.
+        """
+        clean_query = current_query.strip()
+        if not chat_history:
+            return clean_query
+
+        # آخرین پیام‌های کاربر در تاریخچه
+        last_user_msgs = [m["content"] for m in chat_history if m.get("role") == "user" and m.get("content")]
+        if not last_user_msgs:
+            return clean_query
+
+        last_user_query = last_user_msgs[-1].strip()
+
+        # کلمات کلیدی نشان‌دهنده ارجاع و وابستگی به پیام قبلی
+        referential_indicators = [
+            "گام", "گام‌ها", "گامها", "مرحله", "مراحل", "بند", "ماده", "مورد", "موارد",
+            "بیشتر", "توضیح", "کدام", "کدوم", "چرا", "این", "آن", "اینها", "آنها",
+            "همان", "قبلی", "صفحه", "جزییات", "جزئیات", "چند", "چقدر", "لیست"
+        ]
+
+        words = clean_query.split()
+        is_short = len(words) <= 7
+        has_referential_word = any(ind in clean_query for ind in referential_indicators)
+
+        if not (is_short or has_referential_word):
+            return clean_query
+
+        # در صورت در دسترس بودن مدل زبانی واقعی، بازنویسی سریع با LLM انجام می‌شود
+        if llm is not None:
+            try:
+                system_prompt = (
+                    "تو یک دستیار بازنویسی سوال برای جستجو در اسناد هستی. "
+                    "با توجه به سوال قبلی، سوال جدید کاربر را به یک پرسش مستقل، شفاف و جستجوپذیر تبدیل کن. "
+                    "فقط و فقط متن پرسش بازنویسی‌شده را بنویس و هیچ پاسخ یا توضیح اضافه‌ای نده."
+                )
+                user_prompt = (
+                    f"سوال قبلی: {last_user_query}\n"
+                    f"سوال جدید ارجاعی: {clean_query}\n"
+                    f"پرسش مستقل برای جستجو:"
+                )
+                rewrite_messages = [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ]
+                resp = llm.create_chat_completion(
+                    messages=rewrite_messages,
+                    max_tokens=64,
+                    temperature=0.0
+                )
+                choices = resp.get("choices", [])
+                if choices:
+                    rewritten = choices[0].get("message", {}).get("content", "").strip()
+                    cleaned_rewritten = rewritten.strip(' "\'«»\n')
+                    if cleaned_rewritten and len(cleaned_rewritten) > 3 and "\n" not in cleaned_rewritten:
+                        return cleaned_rewritten
+            except Exception:
+                pass
+
+        # روش غنی‌سازی واژگانی هوشمند (Fast Heuristic Context Enrichment)
+        stopwords_query = {"چیست", "چیه", "کجاست", "کیست", "چگونه", "چطور", "چند", "آیا", "لطفا", "توضیح", "بده", "بگو", "رو", "را"}
+        topic_words = [w for w in last_user_query.split() if w not in stopwords_query]
+        topic_context = " ".join(topic_words[:6])
+
+        if topic_context and topic_context not in clean_query:
+            return f"{clean_query} {topic_context}"
+
+        return clean_query
