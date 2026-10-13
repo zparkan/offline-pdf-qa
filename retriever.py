@@ -20,6 +20,7 @@ from rank_bm25 import BM25Okapi
 import config
 from embedder import Embedder
 from vector_db import VectorDB
+from spell_corrector import CorpusSpellCorrector
 
 # تنظیم کدگذاری خروجی ترمینال روی UTF-8 برای جلوگیری از خطای یونیکد در ویندوز
 if hasattr(sys.stdout, "reconfigure"):
@@ -67,6 +68,22 @@ class Retriever:
         self.embedder = embedder or Embedder()
         self.vector_db = vector_db or VectorDB()
         self.rrf_k = rrf_k
+        self._spell_cache: Dict[str, Tuple[int, CorpusSpellCorrector]] = {}
+
+    def get_spell_corrector(self, chat_id: Union[int, str], corpus_docs: List[str]) -> CorpusSpellCorrector:
+        """
+        واکشی یا ساخت شیء اصلاح املایی بر اساس متون اسناد چت با کَش هوشمند.
+        """
+        cid_str = str(chat_id)
+        doc_count = len(corpus_docs)
+        if cid_str in self._spell_cache:
+            cached_count, corrector = self._spell_cache[cid_str]
+            if cached_count == doc_count:
+                return corrector
+
+        corrector = CorpusSpellCorrector(corpus_docs)
+        self._spell_cache[cid_str] = (doc_count, corrector)
+        return corrector
 
     @staticmethod
     def tokenize_persian(text: str, remove_stopwords: bool = True) -> List[str]:
@@ -107,7 +124,8 @@ class Retriever:
         chat_id: Union[int, str],
         top_k: int = 4,
         filter_doc_ids: Optional[Union[int, str, List[Union[int, str]]]] = None,
-        min_similarity: float = 0.78,
+        min_similarity: Optional[float] = None,
+        enable_spell_check: Optional[bool] = None,
         verbose: bool = True
     ) -> Dict[str, Any]:
         """
@@ -118,17 +136,21 @@ class Retriever:
             chat_id: شناسه چت فعال
             top_k: تعداد نهایی مرتبط‌ترین چانک‌های خروجی
             filter_doc_ids: یک شناسه فایل یا لیستی از شناسه‌های فایل برای فیلتر
-            min_similarity: حداقل آستانه شباهت معنایی برای تشخیص مرتبط بودن پاسخ (پیش‌فرض: 0.30)
+            min_similarity: حداقل آستانه شباهت معنایی برای تشخیص مرتبط بودن پاسخ (پیش‌فرض: 0.58)
+            enable_spell_check: فعال/غیرفعال‌سازی ماژول اصلاح املایی فازی سبک (پیش‌فرض: کانفیگ)
             verbose: نمایش لاگ‌های وضعیت و زمان‌سنجی هر مرحله
 
         خروجی:
             Dict حاوی:
-              - "query_text": متن سوال
-              - "query_embedding": بردار سوال (آماده برای جلوگیری از محاسبه مجدد)
+              - "query_text": متن سوال اصلی کاربر
+              - "effective_query": متن سوال پس از پالایش و اصلاح املایی
+              - "corrections": اطلاعات غلط‌های املایی کشف و اصلاح‌شده
+              - "has_typo_corrected": بولین (آیا کلمه‌ای تصحیح شد یا خیر)
+              - "query_embedding": بردار سوال موثر (آماده برای جلوگیری از محاسبه مجدد)
               - "top_chunks": لیستی از چانک‌های برگزیده مرتب‌شده با اطلاعات کامل
               - "has_relevant_context": بولین (آیا اطلاعات مرتبطی در اسناد کاربر وجود دارد یا خیر)
               - "max_similarity": بیشترین شباهت معنایی به دست آمده
-              - "stats": آمار عملکرد و زمان اجرای میلی‌ثانیه‌ای
+              - "stats": آمار عملکرد و زمان اجرای میلی‌ثانیه‌ای هر مرحله
         """
         start_time = time.perf_counter()
 
@@ -147,6 +169,9 @@ class Retriever:
                 print(f"[Retriever] ⚠️ هیچ چانکی در چت '{chat_id}' یافت نشد.")
             return {
                 "query_text": query_text,
+                "effective_query": query_text,
+                "corrections": [],
+                "has_typo_corrected": False,
                 "query_embedding": [],
                 "top_chunks": [],
                 "has_relevant_context": False,
@@ -161,6 +186,36 @@ class Retriever:
         # تعیین عمق استخراج کاندیدهای اولیه (fetch_k) برای اثرگذاری مناسب RRF
         fetch_k = min(max(top_k * 3, 10), chat_total_chunks)
 
+        # دریافت تمام چانک‌های مجاز چت (با اعمال فیلتر اسناد)
+        all_chunks_data = self.vector_db.get_collection_chunks(
+            chat_id=chat_id,
+            filter_doc_ids=filter_doc_ids
+        )
+
+        corpus_ids = all_chunks_data.get("ids", [])
+        corpus_docs = all_chunks_data.get("documents", [])
+        corpus_metas = all_chunks_data.get("metadatas", [])
+
+        # ---------------------------------------------------------
+        # فاز ۰: پالایش و اصلاح املایی فازی سبک (حل مشکل شماره ۹)
+        # ---------------------------------------------------------
+        effective_query = query_text
+        corrections: List[Dict[str, Any]] = []
+        t_spell = 0.0
+
+        spell_check_enabled = enable_spell_check if enable_spell_check is not None else getattr(config, "ENABLE_FUZZY_SPELL_CHECK", True)
+
+        if spell_check_enabled and corpus_docs:
+            t_spell_start = time.perf_counter()
+            corrector = self.get_spell_corrector(chat_id=chat_id, corpus_docs=corpus_docs)
+            max_dist = getattr(config, "SPELL_CHECK_MAX_DISTANCE", 2)
+            effective_query, corrections = corrector.correct_query(query_text, max_distance=max_dist)
+            t_spell = (time.perf_counter() - t_spell_start) * 1000
+
+            if corrections and verbose:
+                corr_details = ", ".join(f"«{c['original']}» ➔ «{c['corrected']}»" for c in corrections)
+                print(f"[Retriever] ✏️ اصلاح غلط املایی در {t_spell:.2f}ms: {corr_details} (پرسش موثر: «{effective_query}»)")
+
         # ---------------------------------------------------------
         # فاز ۱: بازیابی معنایی (Dense Retrieval)
         # ---------------------------------------------------------
@@ -168,7 +223,7 @@ class Retriever:
         if verbose:
             print(f"[Retriever] 🧠 فاز ۱: تولید بردار سوال و جستجوی برداری کسینوسی...")
 
-        query_embedding = self.embedder.embed_query(query_text)
+        query_embedding = self.embedder.embed_query(effective_query)
 
         dense_raw = self.vector_db.query_raw(
             chat_id=chat_id,
@@ -219,21 +274,11 @@ class Retriever:
         if verbose:
             print(f"[Retriever] 📖 فاز ۲: ساخت ایندکس BM25 و جستجوی واژگانی کلمات کلیدی...")
 
-        # دریافت تمام چانک‌های مجاز چت (با اعمال فیلتر اسناد)
-        all_chunks_data = self.vector_db.get_collection_chunks(
-            chat_id=chat_id,
-            filter_doc_ids=filter_doc_ids
-        )
-
-        corpus_ids = all_chunks_data.get("ids", [])
-        corpus_docs = all_chunks_data.get("documents", [])
-        corpus_metas = all_chunks_data.get("metadatas", [])
-
         bm25_ranks: Dict[str, int] = {}
 
         if corpus_docs:
             tokenized_corpus = [self.tokenize_persian(doc) for doc in corpus_docs]
-            query_tokens = self.tokenize_persian(query_text)
+            query_tokens = self.tokenize_persian(effective_query)
 
             if query_tokens:
                 bm25 = BM25Okapi(tokenized_corpus)
@@ -325,20 +370,28 @@ class Retriever:
         # بررسی وجود تطابق واژگانی (BM25) در چانک‌های برتر
         has_bm25_match = any(c.get("bm25_rank") is not None for c in top_chunks)
 
-        # منطق اعتبارسنجی ارتباط پاسخ (Hybrid Relevance Verification):
-        # ۱. شباهت معنایی قوی (بزرگتر یا مساوی min_similarity، پیش‌فرض 0.78) -> تایید قطعی ارتباط
-        # ۲. شباهت معنایی همراه با تطابق واژگانی BM25 (حداقل 0.48) -> تایید ارتباط
-        # ۳. افت نسبی نمره (Score Gap): در صورت وجود فاصله معنی‌دار چانک برتر از بقیه چانک‌ها (بیش از 0.08)
-        # ۴. در غیر این صورت (سوالات نامربوط بدون تطابق کلمات کلیدی) -> فعال‌سازی Fast Exit
+        # تعیین مقدار آستانه موثر (پیش‌فرض ۰.۵۸ از کانفیگ، یا مقدار ورودی متد)
+        effective_min_similarity = min_similarity if min_similarity is not None else getattr(config, "RETRIEVAL_MIN_SIMILARITY", 0.58)
+
+        # منطق اعتبارسنجی هوشمند ارتباط پاسخ (Multi-Level Hybrid Relevance Verification):
+        # ۱. در صورت وجود تطابق واژگانی (BM25)، آستانه ملایم‌تر (effective_min_similarity، پیش‌فرض 0.58) یا شباهت معنادار با کلیدواژه (0.42) اعمال می‌شود.
+        # ۲. در صورت عدم تطابق حتی یک کلیدواژه (zero BM25 match)، مدل امبدینگ نیازمند شباهت معنایی قوی‌تر (حداقل 0.75) است تا از مثبت کاذب ناشی از کف کسینوسی جلوگیری شود.
+        # ۳. افت نسبی نمره (Score Gap): در صورت وجود فاصله معنادار چانک اول از بقیه چانک‌ها (بیش از 0.08)
         sim_scores = [c["similarity"] for c in top_chunks if c.get("similarity") is not None]
         has_score_gap = False
-        if len(sim_scores) >= 2 and max_similarity >= 0.70:
+        if len(sim_scores) >= 2 and max_similarity >= 0.60:
             has_score_gap = (max_similarity - sim_scores[1]) >= 0.08
 
-        is_strong_semantic = max_similarity >= min_similarity
-        is_marginal_with_lexical = (max_similarity >= 0.48) and has_bm25_match
+        if has_bm25_match:
+            has_relevant_context = (max_similarity >= effective_min_similarity) or (max_similarity >= 0.42) or has_score_gap
+        else:
+            # سوال بدون هیچ تطابق کلمه کلیدی، نیاز به اثبات معنایی قوی دارد
+            no_lexical_threshold = max(0.75, effective_min_similarity)
+            has_relevant_context = (max_similarity >= no_lexical_threshold) or has_score_gap
 
-        has_relevant_context = is_strong_semantic or is_marginal_with_lexical or has_score_gap
+        # کف ایمنی قطعی
+        if max_similarity < 0.38:
+            has_relevant_context = False
 
         total_elapsed = (time.perf_counter() - start_time) * 1000
         if verbose:
@@ -352,6 +405,9 @@ class Retriever:
 
         return {
             "query_text": query_text,
+            "effective_query": effective_query,
+            "corrections": corrections,
+            "has_typo_corrected": bool(corrections),
             "query_embedding": query_embedding,
             "top_chunks": top_chunks,
             "has_relevant_context": has_relevant_context,
@@ -362,6 +418,8 @@ class Retriever:
                 "filtered_doc_ids": filter_doc_ids,
                 "dense_candidates_count": len(dense_ranks),
                 "bm25_candidates_count": len(bm25_ranks),
+                "spell_corrections_count": len(corrections),
+                "spell_time_ms": round(t_spell, 2),
                 "dense_time_ms": round(t_dense, 2),
                 "bm25_time_ms": round(t_bm25, 2),
                 "total_elapsed_ms": round(total_elapsed, 2)

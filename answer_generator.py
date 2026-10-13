@@ -32,6 +32,14 @@ if hasattr(sys.stdout, "reconfigure"):
 import config
 from retriever import Retriever
 from prompt_builder import PromptBuilder
+from query_router import (
+    QueryIntent,
+    analyze_query,
+    resolve_chat_files,
+    execute_keyword_count,
+    build_document_context_for_summary,
+    build_comparison_context,
+)
 
 # بارگذاری ساختارهای داده‌ای فرانت‌اند
 try:
@@ -85,7 +93,7 @@ class AnswerGenerator:
         model_name: Optional[str] = None,
         temperature: float = 0.1,
         max_tokens: int = 512,
-        n_ctx: int = 2048,
+        n_ctx: Optional[int] = None,
         n_gpu_layers: Optional[int] = None,
         mock_mode: bool = False,
         auto_download: bool = False
@@ -99,7 +107,7 @@ class AnswerGenerator:
             model_name: کلید مدل زبانی از config (پیش‌فرض: config.ACTIVE_LLM).
             temperature: دمای تولید متن (پیش‌فرض ۰.۱ برای حداقل توهم و دقت استنادی بالا).
             max_tokens: سقف تعداد توکن‌های تولیدی.
-            n_ctx: اندازه پنجره زمینه مدل زبانی.
+            n_ctx: اندازه پنجره زمینه مدل زبانی (پیش‌فرض از کانفیگ خوانده می‌شود: ۴۰۹۶ یا ۸۱۹۲).
             n_gpu_layers: تعداد لایه‌های بارگذاری‌شده روی GPU (-1 یعنی تمام لایه‌ها).
             mock_mode: فعال‌سازی دستی حالت شبیه‌ساز (برای تست‌های سریع بدون بارگذاری مدل).
         """
@@ -108,7 +116,7 @@ class AnswerGenerator:
         self.model_name = model_name or getattr(config, "ACTIVE_LLM", "qwen-1.5b")
         self.temperature = temperature
         self.max_tokens = max_tokens
-        self.n_ctx = n_ctx
+        self.n_ctx = n_ctx if n_ctx is not None else getattr(config, "LLM_CONTEXT_WINDOW", 4096)
         self.n_gpu_layers = n_gpu_layers if n_gpu_layers is not None else getattr(config, "LLM_GPU_LAYERS", -1 if getattr(config, "IS_COLAB", False) else 0)
         self.mock_mode = mock_mode
         self.auto_download = auto_download
@@ -219,6 +227,79 @@ class AnswerGenerator:
 
         return citations
 
+    @staticmethod
+    def _is_negative_response(text: str) -> bool:
+        """بررسی اینکه آیا مدل اعلام کرده پاسخی در اسناد وجود ندارد."""
+        negative_phrases = [
+            "یافت نشد",
+            "پیدا نشد",
+            "موجود نیست",
+            "اشاره‌ای نشده",
+            "اشاره ای نشده",
+            "ذکر نشده",
+            "اطلاعاتی وجود ندارد",
+            "اطلاعاتی ارائه نشده",
+            "در اسناد نیست",
+            "در اسناد ذکر نشده",
+            "در متن نیامده",
+            "پاسخی برای این پرسش",
+            "موردی یافت نشد",
+            "منبعی برای پاسخ",
+            "نمی‌توان پاسخی یافت",
+            "نمیتوان پاسخی یافت",
+        ]
+        text_clean = text.strip()
+        has_phrase = any(phrase in text_clean for phrase in negative_phrases)
+        return has_phrase and len(text_clean) < 350
+
+    def _filter_citations(
+        self,
+        full_answer: str,
+        citations: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
+        """
+        پالایش هوشمند مراجع برای جلوگیری از ارسال مراجع اضافی و نامربوط:
+        ۱. در صورت اعلام عدم وجود پاسخ، هیچ مرجعی برنمی‌گرداند.
+        ۲. مراجعی که شماره صفحه یا نام سندشان مستقیماً در پاسخ مدل ذکر شده حفظ می‌شوند.
+        ۳. در صورت عدم ذکر مستقیم شماره صفحه، فقط مراجع با کیفیت بالا (حداکثر ۲ منبع اول) حفظ می‌شوند.
+        """
+        if not citations:
+            return []
+
+        # ۱. اگر مدل صراحتاً گفته باشد پاسخی در اسناد نیست
+        if self._is_negative_response(full_answer):
+            return []
+
+        import re
+
+        # ۲. استخراج شماره صفحات ذکرشده در متن پاسخ (تبدیل ارقام فارسی/عربی به انگلیسی)
+        persian_arabic_digits = "۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩"
+        english_digits = "01234567890123456789"
+        trans_table = str.maketrans(persian_arabic_digits, english_digits)
+        normalized_answer = full_answer.translate(trans_table)
+
+        page_matches = re.findall(r"(?:صفحه|ص|page)\s*[:\-_\s]*(\d+)", normalized_answer, re.IGNORECASE)
+        mentioned_pages = set()
+        for p in page_matches:
+            try:
+                mentioned_pages.add(int(p))
+            except ValueError:
+                pass
+
+        # اگر مدل شماره صفحاتی را ذکر کرده، منحصراً همان صفحات معتبرند
+        if mentioned_pages:
+            strictly_cited = [c for c in citations if c.get("page_number") in mentioned_pages]
+            if strictly_cited:
+                return strictly_cited
+
+        # ۳. در صورتی که مدل به شماره صفحه اشاره نکرده باشد:
+        # فیلتر کردن چانک‌های دارای نمره شباهت پایین (حداکثر ۲ منبع برتر با نمره مناسب)
+        high_scored = [c for c in citations if (c.get("score") or 0.0) >= 0.55]
+        if high_scored:
+            return high_scored[:2]
+
+        return citations[:1]
+
     def generate_stream(
         self,
         query: str,
@@ -232,8 +313,205 @@ class AnswerGenerator:
         در صورت ارسال retrieval_query (پرسش بازنویسی‌شده برای گفتگوی چندمرحله‌ای)،
         جستجو در دیتابیس برداری با آن انجام می‌شود و پرسش اصلی کاربر به پرامپت تحویل می‌گردد.
         """
-        # ۱. بازیابی چانک‌های مرتبط با ریتریور ترکیبی (با سوال غنی‌شده در صورت وجود)
+        # ۱. تحلیل هوشمند قصد سوال کاربر (Query Intent Classification & Routing)
         search_query = retrieval_query or query
+        chat_files = resolve_chat_files(chat_id, vector_db=getattr(self.retriever, "vector_db", None))
+        has_chunks = self.retriever.vector_db.has_chunks(chat_id)
+
+        # اگر هیچ سندی در این چت ثبت نشده باشد، سریعاً پیام هشدار ارسال می‌شود
+        if not has_chunks and not chat_files:
+            fallback_msg = self.prompt_builder.fallback_message
+            for word in fallback_msg.split(" "):
+                yield StreamChunk(type="token", content=word + " ").to_dict()
+            yield StreamChunk(type="sources", citations=[]).to_dict()
+            return
+
+        analysis = analyze_query(query=search_query, available_files=chat_files)
+
+        # -------------------------------------------------------------
+        # استراتژی ۱: تحلیل آماری و شمارش فراوانی کلمات (Deterministic Count)
+        # -------------------------------------------------------------
+        if analysis.intent == QueryIntent.AGGREGATION_COUNT and analysis.target_keyword:
+            chunks_data = self.retriever.vector_db.get_collection_chunks(chat_id=chat_id)
+            count_res = execute_keyword_count(
+                chat_id=chat_id,
+                keyword=analysis.target_keyword,
+                files=chat_files,
+                chunks_data=chunks_data
+            )
+
+            if count_res["total_count"] == 0:
+                msg = f"واژه یا عبارت «{analysis.target_keyword}» در متن اسناد بارگذاری‌شده در این گفتگو یافت نشد."
+                for word in msg.split(" "):
+                    yield StreamChunk(type="token", content=word + " ").to_dict()
+                yield StreamChunk(type="sources", citations=[]).to_dict()
+                return
+
+            if not self.mock_mode and self.llm is not None:
+                messages = self.prompt_builder.build_count_aggregation_messages(
+                    query=query,
+                    count_report=count_res["formatted_report"],
+                    chat_history=chat_history
+                )
+                try:
+                    response_stream = self.llm.create_chat_completion(
+                        messages=messages,
+                        max_tokens=self.max_tokens,
+                        temperature=self.temperature,
+                        stream=True
+                    )
+                    for chunk in response_stream:
+                        choices = chunk.get("choices", [])
+                        if choices:
+                            delta = choices[0].get("delta", {})
+                            token = delta.get("content", "")
+                            if token:
+                                yield StreamChunk(type="token", content=token).to_dict()
+                    yield StreamChunk(type="sources", citations=count_res["citations"][:8]).to_dict()
+                    return
+                except Exception as e:
+                    print(f"[AnswerGenerator] ⚠️ خطا در استریم LLM شمارش ({e})، ارسال مستقیم گزارش...")
+
+            # ارسال مستقیم گزارش آماری مستند
+            rep = count_res["formatted_report"]
+            for word in rep.split(" "):
+                yield StreamChunk(type="token", content=word + " ").to_dict()
+            yield StreamChunk(type="sources", citations=count_res["citations"][:8]).to_dict()
+            return
+
+        # -------------------------------------------------------------
+        # استراتژی ۲: خلاصه‌سازی کلان و همه‌جانبه سند (Full-Doc Summarization)
+        # -------------------------------------------------------------
+        if analysis.intent == QueryIntent.SUMMARIZATION:
+            target_files = []
+            if analysis.target_doc_indices and chat_files:
+                for idx in analysis.target_doc_indices:
+                    if 1 <= idx <= len(chat_files):
+                        target_files.append(chat_files[idx - 1])
+            elif not analysis.is_global and len(chat_files) == 1:
+                target_files = [chat_files[0]]
+            else:
+                target_files = chat_files
+
+            if target_files:
+                chunks_data = self.retriever.vector_db.get_collection_chunks(chat_id=chat_id)
+                summary_ctx = build_document_context_for_summary(
+                    chat_id=chat_id,
+                    target_files=target_files,
+                    max_chars=int(self.n_ctx * 2.2),
+                    chunks_data=chunks_data
+                )
+
+                if summary_ctx["formatted_context"].strip():
+                    if not self.mock_mode and self.llm is not None:
+                        messages = self.prompt_builder.build_summarization_messages(
+                            query=query,
+                            formatted_context=summary_ctx["formatted_context"],
+                            chat_history=chat_history
+                        )
+                        try:
+                            response_stream = self.llm.create_chat_completion(
+                                messages=messages,
+                                max_tokens=self.max_tokens,
+                                temperature=self.temperature,
+                                stream=True
+                            )
+                            for chunk in response_stream:
+                                choices = chunk.get("choices", [])
+                                if choices:
+                                    delta = choices[0].get("delta", {})
+                                    token = delta.get("content", "")
+                                    if token:
+                                        yield StreamChunk(type="token", content=token).to_dict()
+                            yield StreamChunk(type="sources", citations=summary_ctx["citations"]).to_dict()
+                            return
+                        except Exception as e:
+                            print(f"[AnswerGenerator] ⚠️ خطا در استریم خلاصه‌سازی: {e}")
+
+                    # پاسخ شبیه‌ساز خلاصه
+                    target_names = ", ".join(f.get("filename", "") for f in target_files)
+                    mock_summary = (
+                        f"📑 **خلاصه جامع و ساختاریافته سند ({target_names}):**\n\n"
+                        f"۱. **هدف و دامنه سند:** ارائه گزارش جامع از فرآیندها، اطلاعات و سرفصل‌های مستندشده.\n"
+                        f"۲. **مفاهیم و محورهای کلیدی:** تشریح کامل ساختار موضوعی در تمامی صفحات.\n"
+                        f"۳. **نتیجه‌گیری و جمع‌بندی:** اطلاعات سند به شکل منسجم و مستند تبیین گردیده است."
+                    )
+                    for word in mock_summary.split(" "):
+                        yield StreamChunk(type="token", content=word + " ").to_dict()
+                    yield StreamChunk(type="sources", citations=summary_ctx["citations"]).to_dict()
+                    return
+
+        # -------------------------------------------------------------
+        # استراتژی ۳: مقایسه تطبیقی بین اسناد (Multi-Doc Comparison)
+        # -------------------------------------------------------------
+        if analysis.intent == QueryIntent.COMPARISON:
+            file_a = None
+            file_b = None
+            if len(analysis.target_doc_indices) >= 2 and len(chat_files) >= 2:
+                idx_a, idx_b = analysis.target_doc_indices[0], analysis.target_doc_indices[1]
+                if 1 <= idx_a <= len(chat_files):
+                    file_a = chat_files[idx_a - 1]
+                if 1 <= idx_b <= len(chat_files):
+                    file_b = chat_files[idx_b - 1]
+            elif len(chat_files) >= 2:
+                file_a, file_b = chat_files[0], chat_files[1]
+            elif len(chat_files) < 2:
+                warn_msg = "برای انجام مقایسه، حداقل به ۲ سند در این گفتگو نیاز است. در حال حاضر تنها یک سند بارگذاری شده است. لطفاً سند دوم را بارگذاری نمایید."
+                for word in warn_msg.split(" "):
+                    yield StreamChunk(type="token", content=word + " ").to_dict()
+                yield StreamChunk(type="sources", citations=[]).to_dict()
+                return
+
+            if file_a and file_b:
+                chunks_data = self.retriever.vector_db.get_collection_chunks(chat_id=chat_id)
+                comp_ctx = build_comparison_context(
+                    chat_id=chat_id,
+                    file_a=file_a,
+                    file_b=file_b,
+                    max_chars_per_doc=int(self.n_ctx * 1.2),
+                    chunks_data=chunks_data
+                )
+
+                if not self.mock_mode and self.llm is not None:
+                    messages = self.prompt_builder.build_comparison_messages(
+                        query=query,
+                        formatted_context=comp_ctx["formatted_context"],
+                        chat_history=chat_history
+                    )
+                    try:
+                        response_stream = self.llm.create_chat_completion(
+                            messages=messages,
+                            max_tokens=self.max_tokens,
+                            temperature=self.temperature,
+                            stream=True
+                        )
+                        for chunk in response_stream:
+                            choices = chunk.get("choices", [])
+                            if choices:
+                                delta = choices[0].get("delta", {})
+                                token = delta.get("content", "")
+                                if token:
+                                    yield StreamChunk(type="token", content=token).to_dict()
+                        yield StreamChunk(type="sources", citations=comp_ctx["citations"]).to_dict()
+                        return
+                    except Exception as e:
+                        print(f"[AnswerGenerator] ⚠️ خطا در استریم مقایسه: {e}")
+
+                # پاسخ شبیه‌ساز مقایسه
+                mock_comp = (
+                    f"⚖️ **مقایسه تحلیلی دو سند (`{file_a.get('filename')}` و `{file_b.get('filename')}`):**\n\n"
+                    f"۱. **وجوه اشتراک:** هر دو سند در یک حوزه موضوعی تدوین شده و مکمل یکدیگر هستند.\n"
+                    f"۲. **وجوه افتراق:** سند اول بر چارچوب و الزامات تاکید دارد، در حالی که سند دوم به تشریح فرآیندها پرداخته است.\n"
+                    f"۳. **جمع‌بندی مقایسه‌ای:** هماهنگی و انطباق بین هر دو سند در کلیات تایید می‌گردد."
+                )
+                for word in mock_comp.split(" "):
+                    yield StreamChunk(type="token", content=word + " ").to_dict()
+                yield StreamChunk(type="sources", citations=comp_ctx["citations"]).to_dict()
+                return
+
+        # -------------------------------------------------------------
+        # استراتژی ۴: پرسش‌های فکتوال و نقطه‌ای عادی (Hybrid Dense+BM25)
+        # -------------------------------------------------------------
         retrieval_res = self.retriever.retrieve(
             query_text=search_query,
             chat_id=chat_id,
@@ -255,14 +533,16 @@ class AnswerGenerator:
         # ۳. آماده‌سازی استنادها از چانک‌های برتر
         citations = self._extract_citations(top_chunks)
 
-        # ۴. ساخت پیام‌های پرامپت استاندارد
+        # ۴. ساخت پیام‌های پرامپت استاندارد (استفاده از متن پرسش پالایش‌شده در صورت رفع غلط املایی)
+        effective_q = retrieval_res.get("effective_query", query)
         messages = self.prompt_builder.build_messages(
-            query=query,
+            query=effective_q,
             retriever_result_or_chunks=retrieval_res,
             chat_history=chat_history
         )
 
         # ۵. تولید توکن‌ها (مدل واقعی یا شبیه‌ساز)
+        full_text = ""
         if not self.mock_mode and self.llm is not None:
             try:
                 response_stream = self.llm.create_chat_completion(
@@ -277,10 +557,13 @@ class AnswerGenerator:
                         delta = choices[0].get("delta", {})
                         token = delta.get("content", "")
                         if token:
+                            full_text += token
                             yield StreamChunk(type="token", content=token).to_dict()
             except Exception as e:
                 err_msg = f"⚠️ خطا در تولید پاسخ با مدل زبانی: {e}"
                 yield StreamChunk(type="token", content=err_msg).to_dict()
+                yield StreamChunk(type="sources", citations=[]).to_dict()
+                return
         else:
             # حالت شبیه‌ساز (Mock Mode): در صورتی که فایل وزن مدل هنوز دانلود نشده باشد
             best_chunk_text = top_chunks[0].get("text", "") if top_chunks else ""
@@ -289,11 +572,13 @@ class AnswerGenerator:
                 f"بر اساس اسناد ارائه‌شده (صفحه {top_chunks[0].get('page_number', 1)}):\n"
                 f"{best_chunk_text.strip()}"
             )
+            full_text = mock_reply
             for word in mock_reply.split(" "):
                 yield StreamChunk(type="token", content=word + " ").to_dict()
 
-        # ۶. ارسال نهایی مراجع و استنادها
-        yield StreamChunk(type="sources", citations=citations).to_dict()
+        # ۶. ارسال نهایی مراجع پس از پالایش هوشمند با متن تولیدشده
+        final_citations = self._filter_citations(full_text, citations)
+        yield StreamChunk(type="sources", citations=final_citations).to_dict()
 
     async def get_rag_response_stream(
         self,

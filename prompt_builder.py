@@ -195,6 +195,105 @@ class PromptBuilder:
 
         return messages
 
+    def build_summarization_messages(
+        self,
+        query: str,
+        formatted_context: str,
+        chat_history: Optional[List[Dict[str, str]]] = None
+    ) -> List[Dict[str, str]]:
+        """
+        ساخت پرامپت اختصاصی خلاصه‌سازی کلان و مدیریتی اسناد.
+        """
+        system_prompt = (
+            "شما یک دستیار هوشمند و تحلیل‌گر ارشد اسناد فارسی هستید.\n"
+            "وظیفه شما ارائه یک خلاصه جامع، ساختاریافته، دقیق و حرفه‌ای از تمام بخش‌های اسناد ارائه‌شده است.\n"
+            "دستورالعمل‌ها:\n"
+            "۱. ساختار خلاصه باید شامل: هدف و موضوع کلی سند، سرفصل‌ها و محورهای کلیدی، مهم‌ترین یافته‌ها/آمارها، و جمع‌بندی نهایی باشد.\n"
+            "۲. برای هر بخش از شماره صفحات معتبر سند استفاده کن (مثال: در صفحه ۳ آمده است).\n"
+            "۳. به هیچ وجه اطلاعاتی از خارج از متن اسناد اضافه نکن (ضد توهم).\n"
+            "۴. پاسخ باید کاملاً روان، خوانا، با استفاده از بولت‌پوینت و تیترهای مشخص باشد."
+        )
+
+        messages: List[Dict[str, str]] = [{"role": "system", "content": system_prompt}]
+        if chat_history:
+            messages.extend(self.format_history(chat_history))
+
+        user_content = (
+            "بر اساس متن کامل اسناد بارگذاری‌شده در زیر، به درخواست خلاصه‌سازی پاسخ بده:\n\n"
+            "### متن کامل اسناد و صفحات:\n"
+            f"{formatted_context}\n\n"
+            "### درخواست کاربر:\n"
+            f"{query.strip()}"
+        )
+        messages.append({"role": "user", "content": user_content})
+        return messages
+
+    def build_comparison_messages(
+        self,
+        query: str,
+        formatted_context: str,
+        chat_history: Optional[List[Dict[str, str]]] = None
+    ) -> List[Dict[str, str]]:
+        """
+        ساخت پرامپت اختصاصی مقایسه تحلیلی بین دو یا چند سند.
+        """
+        system_prompt = (
+            "شما یک کارشناس ارشد ارزیابی و تطبیق اسناد و متون فارسی هستید.\n"
+            "وظیفه شما مقایسه دقیق، موشکافانه و بی‌طرفانه بین اسناد ارائه‌شده است.\n"
+            "دستورالعمل‌ها:\n"
+            "۱. پاسخ را در ۴ بخش تنظیم کن:\n"
+            "   الف) وجوه اشتراک و شباهت‌های اصلی (Commonalities)\n"
+            "   ب) وجوه افتراق، تفاوت‌ها و تناقض‌ها (Differences & Discrepancies)\n"
+            "   ج) بررسی تطبیقی شاخص‌ها یا جزئیات کلیدی\n"
+            "   د) نتیجه‌گیری و جمع‌بندی مقایسه‌ای\n"
+            "۲. در هر بند، مشخص کن کدام سند و کدام شماره صفحه مورد نظر است.\n"
+            "۳. فقط بر اساس متن‌های ارائه‌شده مقایسه کن و هیچ پیش‌فرضی خارج از سند نساز."
+        )
+
+        messages: List[Dict[str, str]] = [{"role": "system", "content": system_prompt}]
+        if chat_history:
+            messages.extend(self.format_history(chat_history))
+
+        user_content = (
+            "بر اساس اسناد ارائه‌شده در زیر، مقایسه خواسته شده را انجام بده:\n\n"
+            "### مستندات اسناد مورد مقایسه:\n"
+            f"{formatted_context}\n\n"
+            "### پرسش و درخواست مقایسه کاربر:\n"
+            f"{query.strip()}"
+        )
+        messages.append({"role": "user", "content": user_content})
+        return messages
+
+    def build_count_aggregation_messages(
+        self,
+        query: str,
+        count_report: str,
+        chat_history: Optional[List[Dict[str, str]]] = None
+    ) -> List[Dict[str, str]]:
+        """
+        ساخت پرامپت اختصاصی گزارش فراوانی و شمارش واژگان با تکیه بر آمار دقیق ریاضی.
+        """
+        system_prompt = (
+            "شما دستیار هوشمند گزارش‌دهی و تحلیل آماری متن در اسناد هستید.\n"
+            "یک آمار قطعی و ریاضی از تکرار کلمه در اسناد در اختیارتان قرار داده شده است.\n"
+            "وظیفه شما نگارش یک پاسخ فارسی بسیار شیوا، دقیق و مرتب بر اساس این آمار مستند است.\n"
+            "به هیچ عنوان اعداد یا شماره صفحات گزارش را تغییر نده."
+        )
+
+        messages: List[Dict[str, str]] = [{"role": "system", "content": system_prompt}]
+        if chat_history:
+            messages.extend(self.format_history(chat_history))
+
+        user_content = (
+            "بر اساس آمار دقیق و قطعی زیر، پاسخ پرسش کاربر را با ذکر جزئیات صفحات تدوین کن:\n\n"
+            "### داده‌های مستند شمارش و بررسی متنی:\n"
+            f"{count_report}\n\n"
+            "### پرسش کاربر:\n"
+            f"{query.strip()}"
+        )
+        messages.append({"role": "user", "content": user_content})
+        return messages
+
     def build_chatml_prompt(self, messages: List[Dict[str, str]]) -> str:
         """
         تبدیل لیست پیام‌ها به رشته قالب‌بندی‌شده استاندارد ChatML (مخصوص سری Qwen و DeepSeek).

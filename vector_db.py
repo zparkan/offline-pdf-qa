@@ -140,13 +140,19 @@ class VectorDB:
         """
         return self.count_chunks(chat_id) > 0
 
-    def delete_file_chunks(self, chat_id: Union[int, str], doc_id: Union[int, str]) -> bool:
+    def delete_file_chunks(
+        self,
+        chat_id: Union[int, str],
+        doc_id: Optional[Union[int, str]] = None,
+        filename: Optional[str] = None
+    ) -> bool:
         """
-        حذف تمام چانک‌های متعلق به یک سند خاص از کالکشن چت، بر اساس doc_id در متادیتا.
+        حذف تمام چانک‌های متعلق به یک سند خاص از کالکشن چت بر اساس doc_id و filename در متادیتا.
 
         ورودی:
             chat_id: شناسه چت
-            doc_id: شناسه سندی که باید چانک‌هایش حذف شوند
+            doc_id: شناسه سندی که باید چانک‌هایش حذف شوند (مثلاً 'doc_a1b2c3d4')
+            filename: نام واقعی فایل سند (مثلاً 'proposal.pdf')
 
         خروجی:
             bool: در صورت موفقیت True برمی‌گرداند.
@@ -154,11 +160,40 @@ class VectorDB:
         col_name = self._format_collection_name(chat_id)
         try:
             collection = self.client.get_collection(name=col_name)
-            # کروما تمام رکوردهایی که متادیتای doc_id آن‌ها برابر باشد را حذف می‌کند
-            collection.delete(where={"doc_id": str(doc_id)})
+
+            # استخراج شناسه‌ها و نام‌های هدف
+            target_fn = str(filename) if filename else (str(doc_id) if doc_id and str(doc_id).endswith(('.pdf', '.PDF')) else None)
+            target_id = str(doc_id) if doc_id else None
+
+            # تلاش برای حذف بر اساس نام فایل در متادیتا
+            if target_fn:
+                try:
+                    collection.delete(where={"filename": target_fn})
+                except Exception:
+                    pass
+
+            # تلاش برای حذف بر اساس شناسه هش در متادیتا
+            if target_id:
+                try:
+                    collection.delete(where={"doc_id": target_id})
+                except Exception:
+                    pass
+
+            # پشتیبانی از شرط اشتراکی در صورت ناشناخته بودن نوع شناسه
+            val = str(filename or doc_id)
+            if val:
+                try:
+                    collection.delete(where={"filename": val})
+                except Exception:
+                    pass
+                try:
+                    collection.delete(where={"doc_id": val})
+                except Exception:
+                    pass
+
             return True
         except Exception as e:
-            print(f"[!] خطا یا عدم وجود کالکشن هنگام حذف فایل {doc_id} از چت {chat_id}: {e}")
+            print(f"[!] خطا یا عدم وجود کالکشن هنگام حذف فایل {filename or doc_id} از چت {chat_id}: {e}")
             return False
 
     def delete_chat_collection(self, chat_id: Union[int, str]) -> bool:

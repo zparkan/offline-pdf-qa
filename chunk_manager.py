@@ -30,6 +30,41 @@ from schemas import DocumentChunk, PreprocessedDocument
 # الگوهای جداکننده جملات در زبان فارسی و انگلیسی برای برش طبیعی متن
 _SENTENCE_SPLIT_REGEX = re.compile(r"([.!?؟؛\n]+)")
 
+# الگوی تشخیص بلوک جداول مارک‌داون (حاوی سطر عنوان، خط جداکننده و سطرهای داده)
+_TABLE_BLOCK_REGEX = re.compile(
+    r"((?:^[ \t]*\|.+?\|[ \t]*\r?\n)+(?:^[ \t]*\|[-: |]+?\|[ \t]*\r?\n)(?:^[ \t]*\|.+?\|[ \t]*(?:\r?\n|$))+)",
+    re.MULTILINE
+)
+
+
+def _split_table_block(table_text: str, max_size: int = 1200) -> List[str]:
+    """
+    برش هوشمند جداول بسیار بزرگ با حفظ و تکرار هدر جدول در تمام قطعات.
+    """
+    lines = [l for l in table_text.strip().splitlines() if l.strip()]
+    if len(lines) <= 2 or len(table_text.strip()) <= max_size:
+        return [table_text.strip()]
+
+    header_block = lines[0] + "\n" + lines[1] + "\n"
+    data_rows = lines[2:]
+    chunks = []
+    current_rows = []
+    current_len = len(header_block)
+
+    for row in data_rows:
+        row_len = len(row) + 1
+        if current_len + row_len > max_size and current_rows:
+            chunks.append(header_block + "\n".join(current_rows))
+            current_rows = []
+            current_len = len(header_block)
+        current_rows.append(row)
+        current_len += row_len
+
+    if current_rows:
+        chunks.append(header_block + "\n".join(current_rows))
+
+    return chunks
+
 
 def _split_into_sentences(text: str) -> List[str]:
     """
@@ -57,36 +92,32 @@ def chunk_page_text(
     chunk_size: Optional[int] = None,
     chunk_overlap: Optional[int] = None,
     filename: str = "",
+    table_max_size: Optional[int] = None,
 ) -> List[DocumentChunk]:
     """
-    قطعه‌بندی متن یک صفحه بر اساس اندازه و همپوشانی تعیین‌شده در کانفیگ.
+    قطعه‌بندی هوشمند متن یک صفحه بر اساس اندازه و همپوشانی، با محافظت ویژه از ساختار جداول.
 
     استراتژی:
-      - متن صفحه را بر اساس مرز جملات پیمایش می‌کند.
-      - جملات را تجمیع کرده تا طول چانک به CHUNK_SIZE برسد.
-      - برای چانک بعدی، به اندازه CHUNK_OVERLAP از جملات قبلی به عنوان پیش‌زمینه تکرار می‌کند.
-      - در صورت وجود جمله‌ای بسیار طولانی‌تر از CHUNK_SIZE، آن را با مرز کلمات می‌شکند.
+      - شناسایی بلوک‌های جدولی Markdown و حفظ آن‌ها به صورت اتمیک تا سقف TABLE_CHUNK_MAX_SIZE.
+      - در صورت بزرگتر بودن جدول از سقف مجاز، سطرها تقسیم شده و عنوان ستون‌ها در بالای تمام قطعات تکرار می‌شود.
+      - متن‌های عادی بر اساس مرز جملات و با همپوشانی (Overlap) قطعه‌بندی می‌شوند.
     """
     target_size = chunk_size if chunk_size is not None else config.CHUNK_SIZE
     target_overlap = chunk_overlap if chunk_overlap is not None else config.CHUNK_OVERLAP
+    max_table = table_max_size if table_max_size is not None else getattr(config, "TABLE_CHUNK_MAX_SIZE", 1200)
 
     if not text or not text.strip():
         return []
 
-    sentences = _split_into_sentences(text)
     chunks: List[DocumentChunk] = []
-    current_sentences: List[str] = []
-    current_length = 0
     chunk_counter = start_index
-
-    # ساخت نگاشت برای یافتن سریع char_start و char_end در متن صفحه
     search_cursor = 0
 
     def create_chunk_object(chunk_text: str) -> DocumentChunk:
         nonlocal chunk_counter, search_cursor
         clean_chunk = chunk_text.strip()
-        
-        # محاسبه تقریبی محل قرارگیری چانک در متن اصلی صفحه
+
+        # محاسبه موقعیت چانک در متن اصلی صفحه
         found_pos = text.find(clean_chunk[:min(30, len(clean_chunk))], search_cursor)
         if found_pos != -1:
             c_start = found_pos
@@ -110,61 +141,87 @@ def chunk_page_text(
         chunk_counter += 1
         return item
 
-    for sentence in sentences:
-        s_len = len(sentence)
-        
-        # اگر یک جمله به تنهایی از سقف چانک بزرگتر بود (مورد نادر در متون فاقد نگارش)
-        if s_len > target_size:
-            if current_sentences:
+    def chunk_plain_text(plain_text: str):
+        sentences = _split_into_sentences(plain_text)
+        current_sentences: List[str] = []
+        current_length = 0
+
+        for sentence in sentences:
+            s_len = len(sentence)
+
+            # اگر یک جمله به تنهایی از سقف چانک بزرگتر بود
+            if s_len > target_size:
+                if current_sentences:
+                    chunk_str = "".join(current_sentences)
+                    chunks.append(create_chunk_object(chunk_str))
+                    current_sentences = []
+                    current_length = 0
+
+                words = sentence.split(" ")
+                temp_words: List[str] = []
+                temp_len = 0
+                for w in words:
+                    if temp_len + len(w) + 1 > target_size and temp_words:
+                        chunks.append(create_chunk_object(" ".join(temp_words)))
+                        overlap_words = temp_words[-max(1, int(len(temp_words) * 0.2)):]
+                        temp_words = list(overlap_words)
+                        temp_len = sum(len(x) + 1 for x in temp_words)
+                    temp_words.append(w)
+                    temp_len += len(w) + 1
+                if temp_words:
+                    chunks.append(create_chunk_object(" ".join(temp_words)))
+                continue
+
+            # بررسی سرریز اندازه چانک
+            if current_length + s_len > target_size and current_sentences:
                 chunk_str = "".join(current_sentences)
                 chunks.append(create_chunk_object(chunk_str))
-                current_sentences = []
-                current_length = 0
-            
-            # شکستن جمله بلند بر اساس کلمات
-            words = sentence.split(" ")
-            temp_words: List[str] = []
-            temp_len = 0
-            for w in words:
-                if temp_len + len(w) + 1 > target_size and temp_words:
-                    sub_str = " ".join(temp_words)
-                    chunks.append(create_chunk_object(sub_str))
-                    # همپوشانی کلمه‌ای
-                    overlap_words = temp_words[-max(1, int(len(temp_words) * 0.2)):]
-                    temp_words = list(overlap_words)
-                    temp_len = sum(len(x) + 1 for x in temp_words)
-                temp_words.append(w)
-                temp_len += len(w) + 1
-            if temp_words:
-                chunks.append(create_chunk_object(" ".join(temp_words)))
-            continue
 
-        # بررسی سرریز اندازه چانک
-        if current_length + s_len > target_size and current_sentences:
+                overlap_sentences: List[str] = []
+                overlap_len = 0
+                for s in reversed(current_sentences):
+                    if overlap_len + len(s) <= target_overlap:
+                        overlap_sentences.insert(0, s)
+                        overlap_len += len(s)
+                    else:
+                        break
+
+                current_sentences = overlap_sentences
+                current_length = overlap_len
+
+            current_sentences.append(sentence)
+            current_length += s_len
+
+        if current_sentences:
             chunk_str = "".join(current_sentences)
-            chunks.append(create_chunk_object(chunk_str))
+            if chunk_str.strip():
+                chunks.append(create_chunk_object(chunk_str))
 
-            # آماده‌سازی همپوشانی (نگه‌داشتن جملات انتهایی برای چانک بعدی)
-            overlap_sentences: List[str] = []
-            overlap_len = 0
-            for s in reversed(current_sentences):
-                if overlap_len + len(s) <= target_overlap:
-                    overlap_sentences.insert(0, s)
-                    overlap_len += len(s)
-                else:
-                    break
-            
-            current_sentences = overlap_sentences
-            current_length = overlap_len
+    # شناسایی و تفکیک بخش‌های جدولی در متن صفحه
+    table_matches = list(_TABLE_BLOCK_REGEX.finditer(text))
+    if not table_matches:
+        chunk_plain_text(text)
+        return chunks
 
-        current_sentences.append(sentence)
-        current_length += s_len
+    last_idx = 0
+    for match in table_matches:
+        start, end = match.span()
+        if start > last_idx:
+            pre_text = text[last_idx:start].strip()
+            if pre_text:
+                chunk_plain_text(pre_text)
 
-    # اضافه کردن آخرین بخش باقی‌مانده
-    if current_sentences:
-        chunk_str = "".join(current_sentences)
-        if chunk_str.strip():
-            chunks.append(create_chunk_object(chunk_str))
+        table_raw = match.group(0).strip()
+        table_parts = _split_table_block(table_raw, max_size=max_table)
+        for part in table_parts:
+            chunks.append(create_chunk_object(part))
+
+        last_idx = end
+
+    if last_idx < len(text):
+        post_text = text[last_idx:].strip()
+        if post_text:
+            chunk_plain_text(post_text)
 
     return chunks
 
@@ -173,6 +230,7 @@ def chunk_document(
     doc: Union[PreprocessedDocument, Dict[str, Any]],
     chunk_size: Optional[int] = None,
     chunk_overlap: Optional[int] = None,
+    table_max_size: Optional[int] = None,
     on_progress: Optional[Callable[[str, float], None]] = None,
 ) -> List[DocumentChunk]:
     """
@@ -182,11 +240,13 @@ def chunk_document(
       - doc: نمونه PreprocessedDocument یا دیکشنری با کلیدهای doc_id و pages
       - chunk_size: اندازه سفارشی چانک به کاراکتر (در صورت None از کانفیگ خوانده می‌شود)
       - chunk_overlap: اندازه سفارشی همپوشانی به کاراکتر (در صورت None از کانفیگ خوانده می‌شود)
+      - table_max_size: سقف اندازه قطعات حاوی جداول (در صورت None از کانفیگ خوانده می‌شود)
       - on_progress: کال‌بک گزارش درصد پیشرفت به رابط کاربری
     """
     # اعتبارسنجی مقادیر چانک در برابر مدل امبدینگ فعال
     c_size = chunk_size if chunk_size is not None else config.CHUNK_SIZE
     c_overlap = chunk_overlap if chunk_overlap is not None else config.CHUNK_OVERLAP
+    t_max = table_max_size if table_max_size is not None else getattr(config, "TABLE_CHUNK_MAX_SIZE", 1200)
     config.validate_chunk_config(chunk_size=c_size)
 
     if isinstance(doc, PreprocessedDocument):
@@ -218,6 +278,7 @@ def chunk_document(
             chunk_size=c_size,
             chunk_overlap=c_overlap,
             filename=doc_filename,
+            table_max_size=t_max,
         )
 
         all_chunks.extend(page_chunks)

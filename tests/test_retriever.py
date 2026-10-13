@@ -152,8 +152,26 @@ def run_all_tests():
         assert res5["has_relevant_context"] is False, "خطا: سیستم سوال نامربوط را مرتبط تشخیص داد!"
         print(f"  └─ نتیجه: سیستم با موفقیت تشخیص داد که پاسخ در اسناد نیست (has_relevant_context: False | بیشترین شباهت: {res5['max_similarity']}). [تایید شد ✓]")
 
+        # -------------------------------------------------------------
+        # سناریوی ۶: جستجو با غلط‌های املایی و تایپی (حل مشکل شماره ۹)
+        # -------------------------------------------------------------
+        print("\n[تست ۶] جستجو با غلط‌های تایپی: «مبلغ ۵۰ میلون تومان در قرداد چیست؟»...")
+        res6 = retriever.retrieve(
+            query_text="مبلغ ۵۰ میلون تومان در قرداد چیست؟",
+            chat_id=test_chat,
+            top_k=2,
+            verbose=False
+        )
+        assert res6["has_typo_corrected"] is True, "خطا: سیستم باید وجود غلط املایی را تشخیص داده باشد!"
+        assert "قرارداد" in res6["effective_query"], f"خطا: 'قرداد' باید به 'قرارداد' اصلاح می‌شد! نتیجه: {res6['effective_query']}"
+        assert len(res6["top_chunks"]) > 0, "خطا: چانکی برای پرسش دارای غلط املایی یافت نشد!"
+        assert res6["top_chunks"][0]["chunk_id"] == "doc1_c001", f"خطا: انتظار doc1_c001 بود اما {res6['top_chunks'][0]['chunk_id']} آمد!"
+        assert res6["has_relevant_context"] is True, "خطا: وضعیت ارتباط باید True باشد!"
+        corr_summary = ", ".join(f"«{c['original']}» ➔ «{c['corrected']}»" for c in res6["corrections"])
+        print(f"  └─ نتیجه: اصلاح موفق ({corr_summary})، بازیابی چانک {res6['top_chunks'][0]['chunk_id']} با شباهت {res6['max_similarity']}. [تایید شد ✓]")
+
         print("\n" + "=" * 65)
-        print("🎉 تمام ۵ آزمون با موفقیت ۱۰۰٪ پاس شدند!")
+        print("🎉 تمام ۶ آزمون با موفقیت ۱۰۰٪ پاس شدند!")
         print("=" * 65)
 
     finally:

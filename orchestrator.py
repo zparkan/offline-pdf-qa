@@ -185,6 +185,18 @@ class Orchestrator:
         chat_dir = db.get_chat_data_dir(chat_id)
         stem_name = Path(filename).stem
 
+        # استخراج شناسه یکتای سند (doc_id) از فایل استخراج‌شده قبل از حذف
+        doc_id = None
+        extracted_file = chat_dir / f"{stem_name}_extracted.json"
+        if extracted_file.exists():
+            try:
+                import json
+                with open(extracted_file, "r", encoding="utf-8") as f:
+                    doc_data = json.load(f)
+                    doc_id = doc_data.get("doc_id")
+            except Exception:
+                pass
+
         # پاکسازی فایل‌های دیسک در پوشه چت
         patterns = [filename, f"{stem_name}_extracted.json", f"{stem_name}_clean.json", f"{stem_name}_chunks.json"]
         for pat in patterns:
@@ -195,9 +207,8 @@ class Orchestrator:
                 except OSError:
                     pass
 
-        # پاکسازی چانک‌های برداری از ChromaDB
-        # با توجه به اینکه doc_id بر مبنای هش یا نام فایل است، بر اساس نام سند حذف می‌شود
-        self.vector_db.delete_file_chunks(chat_id=chat_id, doc_id=filename)
+        # پاکسازی چانک‌های برداری از ChromaDB با هر دو شناسه doc_id و filename
+        self.vector_db.delete_file_chunks(chat_id=chat_id, doc_id=doc_id, filename=filename)
 
         # پاکسازی از جدول فایل‌های SQLite
         db.delete_file(file_id)

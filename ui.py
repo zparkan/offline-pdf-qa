@@ -1,4 +1,5 @@
 import os
+import time
 import asyncio
 from nicegui import ui
 import chat_database as db
@@ -350,49 +351,69 @@ def chat_page(chat_id: int):
         with ui.card().classes('w-2/3 h-full bg-slate-900 border border-slate-800 p-0 flex flex-col justify-between rounded-2xl overflow-hidden'):
 
             messages_scroll = ui.scroll_area().classes('w-full flex-grow p-4')
+            with messages_scroll:
+                messages_container = ui.column().classes('w-full gap-2')
 
-            def render_messages():
-                messages_scroll.clear()
-                with messages_scroll:
-                    messages = db.get_messages(chat_id)
-                    if not messages:
-                        with ui.column().classes('w-full items-center justify-center py-20'):
+            is_user_at_bottom = True
+
+            def handle_scroll(e):
+                nonlocal is_user_at_bottom
+                # اگر کاربر در انتهای صفحه (بیش از ۸۸٪) باشد دنبال کردن زنده فعال است
+                # اگر کاربر خودش به بالا اسکرول کند، به خواندن پیام‌های قبلی احترام گذاشته می‌شود
+                if hasattr(e, 'vertical_percentage'):
+                    is_user_at_bottom = (e.vertical_percentage >= 0.88)
+
+            messages_scroll.on_scroll(handle_scroll)
+
+            empty_placeholder = None
+
+            def append_bubble(role: str, content: str, time_str: str = None):
+                nonlocal empty_placeholder
+                if empty_placeholder is not None:
+                    try:
+                        empty_placeholder.delete()
+                    except Exception:
+                        pass
+                    empty_placeholder = None
+
+                is_user = (role == 'user')
+                align_cls = 'justify-end' if is_user else 'justify-start'
+                bg_cls = 'bg-sky-600 text-white rounded-br-none' if is_user else 'bg-slate-800 border border-slate-700 text-slate-100 rounded-bl-none'
+                avatar = '👤' if is_user else '🤖'
+                avatar_bg = 'bg-sky-700' if is_user else 'bg-slate-800 border border-slate-700'
+                t_str = time_str or (db.get_current_local_time_str().split()[1][:5] if hasattr(db, 'get_current_local_time_str') else '')
+
+                with messages_container:
+                    with ui.row().classes(f'w-full {align_cls} my-1 items-start gap-2.5'):
+                        if is_user:
+                            with ui.column().classes(f'max-w-[75%] {bg_cls} p-3.5 rounded-2xl shadow-md'):
+                                ui.label(f"\u200f{content}").classes('text-sm leading-relaxed whitespace-pre-wrap text-right').style('direction: rtl; unicode-bidi: plaintext;')
+                                if t_str:
+                                    ui.label(t_str).classes('text-[10px] opacity-60 self-end mt-1')
+                            ui.label(avatar).classes(f'text-base p-1.5 {avatar_bg} rounded-full flex-shrink-0')
+                        else:
+                            ui.label(avatar).classes(f'text-base p-1.5 {avatar_bg} rounded-full flex-shrink-0')
+                            with ui.column().classes(f'max-w-[75%] {bg_cls} p-3.5 rounded-2xl shadow-md'):
+                                ui.label(f"\u200f{content}").classes('text-sm leading-relaxed whitespace-pre-wrap text-right').style('direction: rtl; unicode-bidi: plaintext;')
+                                if t_str:
+                                    ui.label(t_str).classes('text-[10px] opacity-60 self-end mt-1')
+
+            def init_messages():
+                messages = db.get_messages(chat_id)
+                if not messages:
+                    nonlocal empty_placeholder
+                    with messages_container:
+                        with ui.column().classes('w-full items-center justify-center py-20') as placeholder:
+                            empty_placeholder = placeholder
                             ui.icon('chat_bubble_outline', size='48px').classes('text-slate-700 mb-2')
                             ui.label('سوال خود را درباره اسناد بالا بپرسید...').classes('text-slate-500 text-sm')
-
+                else:
                     for msg in messages:
-                        is_user = (msg['role'] == 'user')
-                        align_cls = 'justify-end' if is_user else 'justify-start'
-
-                        if is_user:
-                            bg_cls = 'bg-sky-600 text-white rounded-br-none'
-                            avatar = '👤'
-                        else:
-                            bg_cls = 'bg-slate-800 border border-slate-700 text-slate-100 rounded-bl-none'
-                            avatar = '🤖'
-
-                        def render_avatar():
-                            avatar_cls = 'bg-sky-700' if is_user else 'bg-slate-800 border border-slate-700'
-                            ui.label(avatar).classes(f'text-base p-1.5 {avatar_cls} rounded-full flex-shrink-0')
-
-                        def render_bubble():
-                            with ui.column().classes(f'max-w-[75%] {bg_cls} p-3.5 rounded-2xl shadow-md'):
-                                # افزودن \u200f به همراه جهت‌دهی دقیق CSS
-                                formatted_content = f"\u200f{msg['content']}"
-                                ui.label(formatted_content).classes('text-sm leading-relaxed whitespace-pre-wrap text-right').style('direction: rtl; unicode-bidi: plaintext;')
-                                ui.label(msg['created_at'].split()[1][:5]).classes('text-[10px] opacity-60 self-end mt-1')
-
-                        with ui.row().classes(f'w-full {align_cls} my-2 items-start gap-2.5'):
-                            if is_user:
-                                render_bubble()
-                                render_avatar()
-                            else:
-                                render_avatar()
-                                render_bubble()
-
+                        t = msg['created_at'].split()[1][:5] if msg.get('created_at') else ''
+                        append_bubble(msg['role'], msg['content'], t)
                     messages_scroll.scroll_to(percent=100)
 
-            render_messages()
+            init_messages()
 
             # کادر ورودی پیام
             with ui.row().classes('w-full p-3 bg-slate-950/80 border-t border-slate-800 gap-2 items-center'):
@@ -400,6 +421,7 @@ def chat_page(chat_id: int):
                 send_btn = ui.button(icon='send').props('round color=primary').classes('shadow-lg shadow-sky-500/20')
 
                 async def send_msg():
+                    nonlocal is_user_at_bottom
                     val = text_input.value.strip()
                     if not val:
                         return
@@ -408,15 +430,20 @@ def chat_page(chat_id: int):
                     send_btn.disable()
                     text_input.disable()
 
-                    # ثبت پیام کاربر
+                    # با ارسال پیام جدید، اسکرول را پایین می‌بریم و ردیابی را فعال می‌کنیم
+                    is_user_at_bottom = True
+
+                    # ثبت پیام در دیتابیس و اضافه کردن حباب کاربر بدون بازسازی کل صفحه
                     db.add_message(chat_id, role='user', content=val)
-                    render_messages()
+                    append_bubble('user', val)
+                    messages_scroll.scroll_to(percent=100)
 
                     files = db.get_files(chat_id)
                     if not files:
                         no_file_ans = "لطفا حداقل یک سند بارگذاری کنید تا بر اساس آن به سوالاتتان پاسخ دهیم ⚠️"
                         db.add_message(chat_id, role='assistant', content=no_file_ans)
-                        render_messages()
+                        append_bubble('assistant', no_file_ans)
+                        messages_scroll.scroll_to(percent=100)
                         send_btn.enable()
                         text_input.enable()
                         return
@@ -426,17 +453,20 @@ def chat_page(chat_id: int):
                     if is_processing:
                         guard_ans = "⚠️ در حال پردازش اسناد .... لطفاً منتظر بمانید"
                         db.add_message(chat_id, role='assistant', content=guard_ans)
-                        render_messages()
+                        append_bubble('assistant', guard_ans)
+                        messages_scroll.scroll_to(percent=100)
                         send_btn.enable()
                         text_input.enable()
                         return
 
                     # ساخت حباب پیام استریم با کاراکتر RLM و تنظیمات BiDi
-                    with messages_scroll:
-                        with ui.row().classes('w-full justify-start my-2 items-start gap-2.5'):
+                    with messages_container:
+                        with ui.row().classes('w-full justify-start my-1 items-start gap-2.5'):
                             ui.label('🤖').classes('text-base p-1.5 bg-slate-800 border border-slate-700 rounded-full flex-shrink-0')
                             with ui.column().classes('max-w-[75%] bg-slate-800 border border-slate-700 text-slate-100 rounded-bl-none p-3.5 rounded-2xl shadow-md'):
                                 response_label = ui.label('\u200f').classes('text-sm leading-relaxed whitespace-pre-wrap text-right').style('direction: rtl; unicode-bidi: plaintext;')
+
+                    messages_scroll.scroll_to(percent=100)
 
                     # قفل ایمن و دریافت استریم پاسخ از ارکستراتور
                     try:
@@ -446,6 +476,7 @@ def chat_page(chat_id: int):
                         orch = get_orchestrator()
                         full_response = ""
                         citations_list = []
+                        last_scroll_time = 0.0
 
                         async for packet in orch.ask_question_stream(val, chat_id):
                             p_type = packet.get("type")
@@ -453,7 +484,13 @@ def chat_page(chat_id: int):
                                 tok = packet.get("content", "")
                                 full_response += tok
                                 response_label.text = f"\u200f{full_response}"
-                                messages_scroll.scroll_to(percent=100)
+
+                                # کنترل هوشمند اسکرول: فقط در صورتی که کاربر خودش به بالا اسکرول نکرده باشد
+                                now = time.time()
+                                if is_user_at_bottom and (now - last_scroll_time > 0.3):
+                                    messages_scroll.scroll_to(percent=100)
+                                    last_scroll_time = now
+
                             elif p_type == "sources":
                                 citations_list = packet.get("citations", [])
 
@@ -470,6 +507,8 @@ def chat_page(chat_id: int):
                                     sources_text += f"- 📄 سند: `{fname}` (صفحه {pnum})\n"
                             full_response += sources_text
                             response_label.text = f"\u200f{full_response}"
+
+                        if is_user_at_bottom:
                             messages_scroll.scroll_to(percent=100)
 
                         # ذخیره پاسخ کامل در دیتابیس پیام‌های چت SQLite
@@ -478,7 +517,8 @@ def chat_page(chat_id: int):
                     except Exception as ex:
                         err_msg = f"❌ متأسفانه در فرآیند تولید پاسخ خطایی رخ داد: {ex}"
                         db.add_message(chat_id, role='assistant', content=err_msg)
-                        render_messages()
+                        append_bubble('assistant', err_msg)
+                        messages_scroll.scroll_to(percent=100)
 
                     finally:
                         text_input.props(remove='loading')

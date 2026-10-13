@@ -33,13 +33,85 @@ def _generate_doc_id(pdf_path: Path) -> str:
 from typing import Callable, Optional
 
 
+def _extract_page_text_and_tables(page: fitz.Page) -> str:
+    """
+    استخراج هوشمند و ساختاریافته متن صفحه به همراه تحلیل ساختار جداول.
+
+    مراحل:
+      ۱. جستجوی ساختارهای جدولی با قابلیت find_tables در PyMuPDF.
+      ۲. در صورت یافتن جدول: تبدیل به جدول استاندارد Markdown جهت حفظ ارتباط ستون‌ها و سطرها.
+      ۳. استخراج بلوک‌های متنی خارج از محدوده هندسی جداول (جلوگیری از تکرار متن جدول).
+      ۴. چینش منظم محتوا از بالا به پایین بر اساس موقعیت عمودی (y0).
+      ۵. در صورت عدم وجود جدول: استفاده مستقیم و سریع از get_text("text", sort=False).
+    """
+    try:
+        tabs = page.find_tables()
+    except Exception:
+        tabs = None
+
+    if not tabs or len(tabs.tables) == 0:
+        return page.get_text("text", sort=False)
+
+    table_bboxes: list[fitz.Rect] = []
+    # المان‌ها با ساختار: (y0, x0, text)
+    elements: list[tuple[float, float, str]] = []
+
+    for tab in tabs.tables:
+        try:
+            tab_rect = fitz.Rect(tab.bbox)
+            md_content = tab.to_markdown()
+            if md_content and md_content.strip():
+                table_bboxes.append(tab_rect)
+                elements.append((tab_rect.y0, tab_rect.x0, md_content.strip()))
+        except Exception:
+            continue
+
+    if not table_bboxes:
+        return page.get_text("text", sort=False)
+
+    # استخراج بلوک‌های متنی خارج از محدوده جداول
+    try:
+        blocks = page.get_text("blocks")
+    except Exception:
+        blocks = []
+
+    for b in blocks:
+        # بلوک متن: (x0, y0, x1, y1, text, block_no, block_type)
+        # block_type == 0 متن است
+        if len(b) < 5 or (len(b) >= 7 and b[6] != 0):
+            continue
+
+        b_rect = fitz.Rect(b[:4])
+        b_text = b[4].strip()
+        if not b_text:
+            continue
+
+        # بررسی همپوشانی با جداول
+        in_table = False
+        for t_rect in table_bboxes:
+            intersection = b_rect & t_rect
+            if intersection.is_valid and (
+                intersection.get_area() > 0.35 * b_rect.get_area() or b_rect in t_rect
+            ):
+                in_table = True
+                break
+
+        if not in_table:
+            elements.append((b_rect.y0, b_rect.x0, b_text))
+
+    # مرتب‌سازی عناصر بر اساس موقعیت عمودی در صفحه (از بالا به پایین)
+    elements.sort(key=lambda item: (item[0], item[1]))
+
+    return "\n\n".join(item[2] for item in elements if item[2])
+
+
 def extract_pdf(
     pdf_path: str | Path,
     source_type: str = "real",
     on_progress: Optional[Callable[[str, float], None]] = None,
 ) -> ExtractedDocument:
     """
-    استخراج متن یک فایل PDF به تفکیک صفحه.
+    استخراج متن یک فایل PDF به تفکیک صفحه با حفظ ساختار جداول.
 
     Args:
         pdf_path: مسیر فایل PDF ورودی.
@@ -65,9 +137,8 @@ def extract_pdf(
     with fitz.open(pdf_path) as doc:
         total_pages = len(doc)
         for page_index, page in enumerate(doc):
-            # برای زبان فارسی (راست‌به‌چپ)، sort=True کلمات را از چپ‌به‌راست و معکوس مرتب می‌کرد.
-            # با sort=False جریان طبیعی استخراج متون حفظ می‌شود.
-            raw_text = page.get_text("text", sort=False)
+            # استخراج ساختاریافته متن به همراه شناسایی جداول
+            raw_text = _extract_page_text_and_tables(page)
             pages.append(
                 ExtractedPage(
                     page_number=page_index + 1,  # PyMuPDF از صفر شروع می‌کند، ما از ۱

@@ -161,15 +161,28 @@ ACTIVE_LLM = "qwen-1.5b"       # مدل زبانی فعال یکپارچه با 
 # در محیط محلی ویندوز بدون کارت گرافیک اختصاصی یا در صورت نبود درایور، روی 0 (فقط CPU) تنظیم می‌شود.
 LLM_GPU_LAYERS = int(os.environ.get("LLM_GPU_LAYERS", "-1" if IS_COLAB else "0"))
 
+# پنجره زمینه مدل زبانی (Context Window):
+# مقدار ۴۰۹۶ برای سیستم محلی و ۸۱۹۲ برای کولب جهت جلوگیری از خطای context window
+LLM_CONTEXT_WINDOW = int(os.environ.get("LLM_CONTEXT_WINDOW", "8192" if IS_COLAB else "4096"))
+
 # دانلود خودکار مدل زبانی در زمان اجرا:
 # در کولب (با سرعت اینترنت بالا) فعال است، اما روی سیستم محلی غیرفعال است تا در صورت فیلترینگ یا قطعی نت، برنامه معطل نماند و در حالت Mock بالا بیاید.
 AUTO_DOWNLOAD_LLM = os.environ.get("AUTO_DOWNLOAD_LLM", "1" if IS_COLAB else "0") == "1"
+
+# حداقل آستانه شباهت معنایی برای اعتبارسنجی ارتباط (نقطه تعادل طلایی در متون فارسی)
+RETRIEVAL_MIN_SIMILARITY = float(os.environ.get("RETRIEVAL_MIN_SIMILARITY", "0.58"))
+
+# تنظیمات اصلاح املایی فازی سبک (Fuzzy Spell Correction)
+ENABLE_FUZZY_SPELL_CHECK = os.environ.get("ENABLE_FUZZY_SPELL_CHECK", "1") == "1"
+SPELL_CHECK_MAX_DISTANCE = int(os.environ.get("SPELL_CHECK_MAX_DISTANCE", "2"))
 
 # =====================================================================
 # ۵. تنظیمات قطعه‌بندی اسناد (Document Chunking Configuration)
 # =====================================================================
 CHUNK_SIZE = 500       # حداکثر طول هدف هر چانک به کاراکتر
 CHUNK_OVERLAP = 100    # میزان همپوشانی چانک‌های مجاور به کاراکتر
+# حداکثر طول مجاز برای قطعات حاوی جداول (جهت حفظ یکپارچگی اتمیک جدول و جلوگیری از قطعه‌قطعه شدن سطرها)
+TABLE_CHUNK_MAX_SIZE = int(os.environ.get("TABLE_CHUNK_MAX_SIZE", "1200"))
 
 
 def validate_chunk_config(chunk_size: int = None, model_name: str = None) -> bool:
