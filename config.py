@@ -26,7 +26,12 @@ CHAT_DB_FILE = DATABASE_DIR / "chat_history.db"
 SERVER_PORT = 8050
 
 # تشخیص محیط اجرا (Google Colab یا سیستم محلی)
-IS_COLAB = "google.colab" in str(os.environ)
+IS_COLAB = (
+    "COLAB_GPU" in os.environ
+    or "COLAB_RELEASE_TAG" in os.environ
+    or os.environ.get("IS_COLAB") == "1"
+    or "google.colab" in str(os.environ)
+)
 ENV_MODE = "COLAB" if IS_COLAB else "LOCAL"
 
 # =====================================================================
@@ -153,8 +158,8 @@ LLM_MODELS = {
 # =====================================================================
 # ۴. انتخاب مدل‌های فعال و شتاب‌دهنده گرافیکی (Active Selection & Hardware)
 # =====================================================================
-ACTIVE_EMBEDDING = "e5-small"  # مدل امبدینگ فعال: e5-small برای سبکی و سرعت
-ACTIVE_LLM = "qwen-1.5b"       # مدل زبانی فعال یکپارچه با llama-cpp (کوئن ۱.۵ میلیارد)
+ACTIVE_EMBEDDING = os.environ.get("ACTIVE_EMBEDDING", "e5-small")
+ACTIVE_LLM = os.environ.get("ACTIVE_LLM", "qwen-1.5b")
 
 # تنظیمات شتاب‌دهنده کارت گرافیک (GPU Offloading):
 # مقدار 1- در llama-cpp به معنی انتقال ۱۰۰٪ لایه‌ها به VRAM کارت گرافیک (مثلاً Nvidia T4 کولب) است.
