@@ -110,7 +110,12 @@ class PromptBuilder:
             # پاکسازی خطوط خالی اضافی در متن چانک
             cleaned_text = text.strip()
 
-            header = f"[منبع شماره {index} | سند: {doc_id} | شماره صفحه: {page_number}]"
+            doc_name = (
+                (item.filename if isinstance(item, DocumentChunk) and hasattr(item, "filename") else None)
+                or (item.get("filename") or item.get("metadata", {}).get("filename") if isinstance(item, dict) else None)
+                or doc_id
+            )
+            header = f"[سند: {doc_name} | شماره صفحه: {page_number}]"
             block = f"{header}\n{cleaned_text}"
             formatted_blocks.append(block)
 

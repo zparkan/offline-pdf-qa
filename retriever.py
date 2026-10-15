@@ -383,14 +383,14 @@ class Retriever:
             has_score_gap = (max_similarity - sim_scores[1]) >= 0.08
 
         if has_bm25_match:
-            has_relevant_context = (max_similarity >= effective_min_similarity) or (max_similarity >= 0.42) or has_score_gap
+            has_relevant_context = (max_similarity >= effective_min_similarity) or has_score_gap
         else:
-            # سوال بدون هیچ تطابق کلمه کلیدی، نیاز به اثبات معنایی قوی دارد
-            no_lexical_threshold = max(0.75, effective_min_similarity)
+            # سوال بدون تطابق کلمه کلیدی، نیاز به اثبات معنایی قوی دارد
+            no_lexical_threshold = max(0.68, effective_min_similarity)
             has_relevant_context = (max_similarity >= no_lexical_threshold) or has_score_gap
 
-        # کف ایمنی قطعی
-        if max_similarity < 0.38:
+        # کف ایمنی قطعی (زیر 0.50 قطعاً نامربوط تلقی می‌شود تا مدل دچار توهم نشود)
+        if max_similarity < 0.50:
             has_relevant_context = False
 
         total_elapsed = (time.perf_counter() - start_time) * 1000

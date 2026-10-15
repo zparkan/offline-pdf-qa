@@ -137,8 +137,9 @@ def extract_pdf(
     with fitz.open(pdf_path) as doc:
         total_pages = len(doc)
         for page_index, page in enumerate(doc):
-            # استخراج ساختاریافته متن به همراه شناسایی جداول
-            raw_text = _extract_page_text_and_tables(page)
+            # برای زبان فارسی (راست‌به‌چپ)، sort=False جریان طبیعی استخراج متون را حفظ کرده
+            # و از معکوس شدن کاراکترها و به هم ریختن کلمات جداول به طور کامل جلوگیری می‌کند.
+            raw_text = page.get_text("text", sort=False)
             pages.append(
                 ExtractedPage(
                     page_number=page_index + 1,  # PyMuPDF از صفر شروع می‌کند، ما از ۱

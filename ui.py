@@ -525,7 +525,10 @@ def chat_page(chat_id: int):
                         text_input.placeholder = "سوال خود را بنویسید... (Enter برای ارسال، Shift+Enter برای خط بعد)"
                         send_btn.enable()
                         text_input.enable()
-                        text_input.focus()
+                        try:
+                            text_input.run_method('focus')
+                        except Exception:
+                            pass
 
                 text_input.on('keydown.enter.exact.prevent', send_msg)
                 text_input.on('keydown.enter.shift', lambda e: None)

@@ -73,8 +73,8 @@ _COMPARE_PATTERNS = [
 ]
 
 _SUMMARIZE_PATTERNS = [
-    re.compile(r"خلاصه\s*(?:کن|سازی|رو|ی|اش|ش|کنید|نمایید|ای)", re.IGNORECASE),
-    re.compile(r"\bچکیده\b", re.IGNORECASE),
+    re.compile(r"خلاصه", re.IGNORECASE),
+    re.compile(r"چکیده", re.IGNORECASE),
     re.compile(r"مرور\s*کلی", re.IGNORECASE),
     re.compile(r"توضیح\s*کلی", re.IGNORECASE),
     re.compile(r"معرفی\s*کن", re.IGNORECASE),

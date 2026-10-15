@@ -8,7 +8,7 @@ from model_manager import ModelManager
 # ۱. تنظیمات محیط و مسیرها (Paths & Environment)
 # =====================================================================
 BASE_DIR = Path(__file__).resolve().parent
-MODELS_ROOT = BASE_DIR / "models"
+MODELS_ROOT = Path(os.environ.get("MODELS_ROOT", BASE_DIR / "models"))
 EMBEDDING_DIR = MODELS_ROOT / "embedding"
 LLM_DIR = MODELS_ROOT / "llm"
 DB_DIR = BASE_DIR / "chroma_db"
@@ -141,7 +141,12 @@ LLM_MODELS = {
     "qwen-7b": {
         "repo": "Qwen/Qwen2.5-7B-Instruct-GGUF",
         "filename": "qwen2.5-7b-instruct-q4_k_m.gguf",
-        "desc": "کیفیت بالا برای زبان فارسی"
+        "desc": "کیفیت بسیار بالا برای زبان فارسی (کوئن ۷.۶ میلیارد پارامتر)"
+    },
+    "qwen-8b": {
+        "repo": "Qwen/Qwen2.5-7B-Instruct-GGUF",
+        "filename": "qwen2.5-7b-instruct-q4_k_m.gguf",
+        "desc": "کوئن ۲.۵ هشت میلیاردی (۷.۶B) - بالاترین کیفیت برای زبان فارسی"
     },
     "qwen-3.5-8b": {
         "repo": "Qwen/Qwen3.5-8B-GGUF",
@@ -177,8 +182,8 @@ AUTO_DOWNLOAD_LLM = os.environ.get("AUTO_DOWNLOAD_LLM", "1" if IS_COLAB else "0"
 # حداقل آستانه شباهت معنایی برای اعتبارسنجی ارتباط (نقطه تعادل طلایی در متون فارسی)
 RETRIEVAL_MIN_SIMILARITY = float(os.environ.get("RETRIEVAL_MIN_SIMILARITY", "0.58"))
 
-# تنظیمات اصلاح املایی فازی سبک (Fuzzy Spell Correction)
-ENABLE_FUZZY_SPELL_CHECK = os.environ.get("ENABLE_FUZZY_SPELL_CHECK", "1") == "1"
+# تنظیمات اصلاح املایی فازی سبک (به دلیل دستکاری ناخواسته کلمات کاربر، به طور پیش‌فرض غیرفعال شد)
+ENABLE_FUZZY_SPELL_CHECK = os.environ.get("ENABLE_FUZZY_SPELL_CHECK", "0") == "1"
 SPELL_CHECK_MAX_DISTANCE = int(os.environ.get("SPELL_CHECK_MAX_DISTANCE", "2"))
 
 # =====================================================================

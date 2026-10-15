@@ -157,13 +157,20 @@ class Orchestrator:
             if m.get("content")
         ]
 
-        # ۳. بازنویسی هوشمند سوال در صورت گفتگوی چندمرحله‌ای (Conversational Query Reformulation)
-        llm_instance = getattr(self.answer_generator, "llm", None) if getattr(self.answer_generator, "is_loaded", False) else None
-        retrieval_query = self.prompt_builder.rewrite_conversational_query(
-            current_query=normalized_query,
-            chat_history=chat_history,
-            llm=llm_instance
-        )
+        # ۳. بازنویسی هوشمند سوال فقط در صورت گفتگوی چندمرحله‌ای واقعی (Conversational Query Reformulation)
+        retrieval_query = normalized_query
+        if chat_history and len(chat_history) >= 2:
+            try:
+                llm_instance = getattr(self.answer_generator, "llm", None) if getattr(self.answer_generator, "is_loaded", False) else None
+                candidate_query = self.prompt_builder.rewrite_conversational_query(
+                    current_query=normalized_query,
+                    chat_history=chat_history,
+                    llm=llm_instance
+                )
+                if candidate_query and candidate_query.strip():
+                    retrieval_query = candidate_query.strip()
+            except Exception:
+                retrieval_query = normalized_query
 
         # ۴. دریافت استریم از پاسخ‌ساز RAG (جستجو با retrieval_query و پرامپت با normalized_query)
         async for packet in self.answer_generator.get_rag_response_stream(
