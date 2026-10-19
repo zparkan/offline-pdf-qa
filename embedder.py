@@ -39,10 +39,19 @@ class Embedder:
         if not success:
             raise RuntimeError(f"خطا در آماده‌سازی فایل مدل امبدینگ: {msg}")
 
-        # ۳. بارگذاری مدل روی حافظه رم یا کارت گرافیک (در صورت وجود)
-        print(f"[*] در حال لود مدل امبدینگ '{self.model_key}' در حافظه...")
-        self.model = SentenceTransformer(local_path)
-        print(f"[✓] مدل با موفقیت بارگذاری شد (ابعاد بردار: {self.dimension}).")
+        # ۳. بارگذاری مدل روی حافظه رم یا کارت گرافیک (GPU)
+        import torch
+        force_gpu = getattr(config, "FORCE_GPU", False) or os.environ.get("FORCE_GPU") == "1"
+        if force_gpu and not torch.cuda.is_available():
+            raise RuntimeError(
+                "[Embedder] ❌ خطای بحرانی سخت‌افزار: پردازش مدل‌ها صرفاً روی کارت گرافیک (GPU) اجباری شده است، "
+                "اما شتاب‌دهنده CUDA در دسترس نیست! لطفاً در کولب از منوی Runtime -> Change runtime type گزینه GPU را فعال کنید."
+            )
+
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        print(f"[*] در حال لود مدل امبدینگ '{self.model_key}' روی سخت‌افزار '{device.upper()}'...")
+        self.model = SentenceTransformer(local_path, device=device)
+        print(f"[✓] مدل با موفقیت روی {device.upper()} بارگذاری شد (ابعاد بردار: {self.dimension}).")
 
         # ۴. تشخیص نیاز به پیشوند (برای مدل‌های خانواده e5)
         self.is_e5_family = "e5" in self.model_key.lower()

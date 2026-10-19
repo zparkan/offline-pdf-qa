@@ -80,3 +80,10 @@ offline-pdf-qa/
 # تنظیمات دستیار
 .agents/
 
+# خروجی‌های محاسباتی و داوری آزمون
+qa_results_filled.csv
+evaluation_summary.json
+tests/**/qa_results_filled.csv
+tests/**/evaluation_summary.json
+
+

@@ -57,9 +57,21 @@ class VectorDB:
     def _format_collection_name(chat_id: Union[int, str]) -> str:
         """
         تولید نام استاندارد برای کالکشن چت مطابق با قوانین نام‌گذاری ChromaDB:
-        طول بین ۳ تا ۶۳ کاراکتر، فقط حروف، عدد، خط تیره و آندرلاین.
+        طول بین ۳ تا ۶۳ کاراکتر، فقط حروف، عدد، خط تیره و آندرلاین (ASCII).
         """
-        return f"chat_{chat_id}"
+        import re
+        import hashlib
+        raw = str(chat_id).strip()
+        clean = re.sub(r"[^a-zA-Z0-9._-]", "_", raw)
+        if clean != raw or clean.strip("_") == "":
+            h = hashlib.md5(raw.encode("utf-8")).hexdigest()[:8]
+            clean = f"{clean[:16].strip('_')}_{h}" if clean.strip('_') else f"col_{h}"
+        col_name = f"chat_{clean}"[:63]
+        col_name = re.sub(r"^[^a-zA-Z0-9]+", "c", col_name)
+        col_name = re.sub(r"[^a-zA-Z0-9]+$", "0", col_name)
+        if len(col_name) < 3:
+            col_name = col_name.ljust(3, "0")
+        return col_name
 
     def get_or_create_collection(self, chat_id: Union[int, str]):
         """

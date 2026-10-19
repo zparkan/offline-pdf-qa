@@ -1,0 +1,2533 @@
+{
+  "dataset_id": "offline_pdf_qa_eval_v3_115",
+  "language": "fa",
+  "purpose": "مجموعه ارزیابی RAG آفلاین فارسی مبتنی بر فایل‌های PDF ارائه‌شده؛ شامل پرسش‌های پاسخ‌پذیر و کنترل‌های غیرقابل‌پاسخ.",
+  "version": "3.0.0",
+  "total_items": 115,
+  "important_note": "این مجموعه پیش‌نویسِ منبع‌محور است، نه آزمون نهاییِ تأییدشده. پیش از گزارش رسمی، بازبینی انسانی سؤال/پاسخ/شماره صفحه لازم است. صفحات بر اساس شماره صفحه PDF (۱-مبنا) هستند. supporting_chunk_ids عمداً خالی است تا با شناسه‌های chunk واقعی پروژه پر شود.",
+  "source_files_used": [
+    "1023.pdf",
+    "paper1047.pdf",
+    "sample_persian.pdf",
+    "القای الکترومغناطیس.pdf",
+    "جزوه شیمی ترکیبات آلی.pdf",
+    "جمع بندی آیات دینی.pdf",
+    "دیفرانسیل ۴_removed_removed.pdf",
+    "زبان 1.pdf",
+    "فیزیک 1 احتمالا واسه تجربی(تست).pdf",
+    "والیبال.pdf",
+    "کار با کودک.pdf"
+  ],
+  "items": [
+    {
+      "qa_id": "qa_001",
+      "doc_id": "والیبال",
+      "source_file": "والیبال.pdf",
+      "question": "فدراسیون والیبال ایران از چه سالی استقلال یافت؟",
+      "question_type": "fact_lookup",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "از سال ۱۳۳۶ به استقلال رسید.",
+      "supporting_pages": [
+        1
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "در بخش «مقدمه و پیشینه» آمده که فدراسیون از سال ۱۳۳۶ مستقل شد.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_002",
+      "doc_id": "والیبال",
+      "source_file": "والیبال.pdf",
+      "question": "فدراسیون والیبال ایران در اواخر کدام دهه به عضویت فدراسیون جهانی والیبال درآمد؟",
+      "question_type": "fact_lookup",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "در اواخر دههٔ ۱۳۳۰ شمسی.",
+      "supporting_pages": [
+        1
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "بخش پیشینه عضویت در FIVB را در اواخر دههٔ ۱۳۳۰ ذکر می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_003",
+      "doc_id": "والیبال",
+      "source_file": "والیبال.pdf",
+      "question": "سه مورد از وظایف فدراسیون والیبال را نام ببرید.",
+      "question_type": "multi_fact",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "برگزاری مسابقات داخلی، مدیریت تیم‌های ملی، استعدادیابی، آموزش مربیان و داوران، و توسعه زیرساخت‌ها از وظایف آن‌اند.",
+      "supporting_pages": [
+        1
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "فهرست وظایف در صفحهٔ اول شامل مسابقات، تیم‌های ملی، استعدادیابی، آموزش و زیرساخت است.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "multi_fact",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_004",
+      "doc_id": "والیبال",
+      "source_file": "والیبال.pdf",
+      "question": "چرا لیگ داخلی پویا برای تیم‌های ملی اهمیت دارد؟",
+      "question_type": "reasoning_from_text",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "زیرا به‌عنوان پشتوانه‌ای قدرتمند برای تیم‌های ملی عمل می‌کند و زمینهٔ رشد بازیکنان را فراهم می‌سازد.",
+      "supporting_pages": [
+        1
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "متن، لیگ داخلی پویا را پشتوانهٔ تیم‌های ملی معرفی می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "reasoning_from_text",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_005",
+      "doc_id": "والیبال",
+      "source_file": "والیبال.pdf",
+      "question": "دو چالش اقتصادی فدراسیون والیبال که در سند ذکر شده چیست؟",
+      "question_type": "multi_fact",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "وابستگی به بودجه‌های دولتی و ناپایداری درآمدهای حاصل از حامیان مالی؛ همچنین خلأهای حق پخش و کپی‌رایت مطرح شده‌اند.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "بخش آسیب‌شناسی چالش‌های بودجه، اسپانسر، حق پخش و کپی‌رایت را برمی‌شمارد.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "multi_fact",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_006",
+      "doc_id": "والیبال",
+      "source_file": "والیبال.pdf",
+      "question": "استعدادیابی والیبال در مدارس از چه گروه سنی پیشنهاد شده است؟",
+      "question_type": "fact_lookup",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "از سنین ۶ تا ۹ سالگی.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "پیشنهاد غربالگری عمومی در مدارس از سنین ۶ تا ۹ سالگی آغاز می‌شود.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_007",
+      "doc_id": "والیبال",
+      "source_file": "والیبال.pdf",
+      "question": "برای کاهش وابستگی مالی فدراسیون، دو راهکار مطرح‌شده را بیان کنید.",
+      "question_type": "multi_fact",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "خصوصی‌سازی واقعی و تقویت برند باشگاه‌ها؛ استفاده از پلتفرم‌های دیجیتال برای فروش محتوا؛ مذاکره برای حق پخش؛ و حمایت قانونی از کپی‌رایت از راهکارها هستند.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "بخش تحول درآمدزایی چهار راهکار اصلی را فهرست می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "multi_fact",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_008",
+      "doc_id": "والیبال",
+      "source_file": "والیبال.pdf",
+      "question": "مدیریت دانش چه کمکی به توسعهٔ والیبال می‌کند؟",
+      "question_type": "reasoning_from_text",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "با ثبت و ذخیرهٔ تجربه‌های فنی و مدیریتی مربیان و مدیران موفق، انتقال تجربه به نسل‌های جدید و بهره‌وری بهتر از منابع ممکن می‌شود.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "بخش ارتقای بهره‌وری بر ثبت و ذخیرهٔ تجربیات تأکید دارد.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "reasoning_from_text",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_009",
+      "doc_id": "والیبال",
+      "source_file": "والیبال.pdf",
+      "question": "چرا والیبال ساحلی در ایران ظرفیت توسعه دارد؟",
+      "question_type": "reasoning_from_text",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "به‌دلیل نوار ساحلی طولانی در شمال و جنوب کشور و ظرفیت آن برای مدال‌آوری المپیک؛ البته توسعه به زمین استاندارد، استعدادیابی و لیگ مستمر نیاز دارد.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "بخش والیبال ساحلی به نوار ساحلی و راهکارهای توسعه اشاره می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "reasoning_from_text",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_010",
+      "doc_id": "والیبال",
+      "source_file": "والیبال.pdf",
+      "question": "نتیجه‌گیری سند برای تداوم توسعهٔ والیبال ایران بر چه محورهایی تأکید می‌کند؟",
+      "question_type": "summary",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "آینده‌نگاری راهبردی، تنوع‌بخشی به منابع مالی، استعدادیابی علمی و توجه به والیبال ساحلی.",
+      "supporting_pages": [
+        3
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "نتیجه‌گیری صفحهٔ سوم این اولویت‌ها را جمع‌بندی می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "summary",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_011",
+      "doc_id": "کار_با_کودک",
+      "source_file": "کار با کودک.pdf",
+      "question": "سند سه هدف اصلی فعالیت کار با کودک را چه می‌داند؟",
+      "question_type": "multi_fact",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "تشویق کودکان به شرکت در مراسم ملی‌ـ‌مذهبی، تخلیهٔ فکری و هیجانی در زمان جنگ، و ایجاد خاطره‌ای خوش برای آنان.",
+      "supporting_pages": [
+        1
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "پاراگراف آغازین صفحه اهداف را صریح بیان می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "multi_fact",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_012",
+      "doc_id": "کار_با_کودک",
+      "source_file": "کار با کودک.pdf",
+      "question": "چهار وسیلهٔ پیشنهادی برای میز کودک را نام ببرید.",
+      "question_type": "list_extraction",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "میز و صندلی کودک، کاربرگ رنگ‌آمیزی، کاغذ سفید، مداد رنگی، تراش و جایزهٔ کوچک؛ هر چهار مورد از این فهرست پذیرفته است.",
+      "supporting_pages": [
+        1
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "فهرست اقلام موردنیاز میز کودک در صفحهٔ اول آمده است.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "list_extraction",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_013",
+      "doc_id": "کار_با_کودک",
+      "source_file": "کار با کودک.pdf",
+      "question": "برای فراهم‌کردن امکان نقاشی و رنگ‌آمیزی، چرا هم کاغذ سفید و هم کاربرگ چاپی پیشنهاد شده است؟",
+      "question_type": "fact_lookup",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "چون برخی کودکان نقاشی آزاد و برخی رنگ‌آمیزی را ترجیح می‌دهند؛ وجود هر دو، هر دو انتخاب را فراهم می‌کند.",
+      "supporting_pages": [
+        1
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "متن تفاوت علاقهٔ کودکان به نقاشی و رنگ‌آمیزی را توضیح می‌دهد.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_014",
+      "doc_id": "کار_با_کودک",
+      "source_file": "کار با کودک.pdf",
+      "question": "در نقاشی آزاد، چرا بهتر است کودک خودش موضوع نقاشی را انتخاب کند؟",
+      "question_type": "reasoning_from_text",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "تا تخلیهٔ روانی شود و فضای ذهنی او دیده شود؛ اگر دربارهٔ موضوع پرسید، مربی می‌تواند موضوعی هدفمند پیشنهاد کند.",
+      "supporting_pages": [
+        1
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "توضیح مربوط به نقاشی آزاد و مشاهدهٔ فضای ذهنی کودک در صفحهٔ اول است.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "reasoning_from_text",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_015",
+      "doc_id": "کار_با_کودک",
+      "source_file": "کار با کودک.pdf",
+      "question": "طبق سند، چه چیزی می‌تواند انگیزهٔ کودک برای پایان‌دادن به نقاشی را افزایش دهد؟",
+      "question_type": "fact_lookup",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "هدیه‌ای کوچک مانند برچسب، خوراکی یا بادکنک.",
+      "supporting_pages": [
+        1
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "متن هدیه را عامل تشویق معرفی می‌کند و چند نمونه می‌آورد.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_016",
+      "doc_id": "کار_با_کودک",
+      "source_file": "کار با کودک.pdf",
+      "question": "چرا مربی و مسئول تعامل با کودک بخش مهمی از میز کودک دانسته شده‌اند؟",
+      "question_type": "reasoning_from_text",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "زیرا بسیاری از کودکان به‌خاطر مربی می‌مانند و می‌خواهند با او ارتباط برقرار کنند؛ بنابراین بازخورد و گفت‌وگوی هدفمند مربی اهمیت دارد.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "پاراگراف مربوط به نقش مربی در صفحهٔ دوم این دلیل را بیان می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "reasoning_from_text",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_017",
+      "doc_id": "کار_با_کودک",
+      "source_file": "کار با کودک.pdf",
+      "question": "برای ساخت کاردستی گروهی، چه اقلامی پیشنهاد شده است؟",
+      "question_type": "list_extraction",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "کاغذ رنگی، چسب، قیچی و بنر یا مقوای بزرگ برای کار جمعی.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "بخش «کاردستی و کار جمعی» فهرست اقلام را ارائه می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "list_extraction",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_018",
+      "doc_id": "کار_با_کودک",
+      "source_file": "کار با کودک.pdf",
+      "question": "پیش از نقاشی روی بدن کودک، چه اجازه‌ای باید گرفته شود؟",
+      "question_type": "fact_lookup",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "ابتدا باید از والدین کودک اجازه گرفته شود.",
+      "supporting_pages": [
+        3
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "در بخش نقاشی روی صورت، کسب اجازه از والدین تصریح شده است.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_019",
+      "doc_id": "کار_با_کودک",
+      "source_file": "کار با کودک.pdf",
+      "question": "برای سریع‌ترشدن نقاشی روی صورت، چه تقسیم کاری پیشنهاد شده است؟",
+      "question_type": "fact_lookup",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "برای کشیدن هر رنگ، یک شخص جدا در نظر گرفته شود.",
+      "supporting_pages": [
+        3
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "این پیشنهاد در توضیحات نقاشی روی صورت آمده است.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_020",
+      "doc_id": "کار_با_کودک",
+      "source_file": "کار با کودک.pdf",
+      "question": "آینه در فعالیت نقاشی روی صورت چه نقشی می‌تواند داشته باشد؟",
+      "question_type": "reasoning_from_text",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "کودک پس از پایان نقاشی نتیجه را در آینه ببیند و عکس بگیرد؛ این کار می‌تواند اهمیت و جذابیت تجربه را برای او بیشتر کند.",
+      "supporting_pages": [
+        3
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "بخش ایدهٔ استفاده از آینه، دیدن نتیجه و عکاسی را توضیح می‌دهد.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "reasoning_from_text",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_021",
+      "doc_id": "جمع_بندی_آیات_دینی",
+      "source_file": "جمع بندی آیات دینی.pdf",
+      "question": "آیهٔ مربوط به هدفمندی خلقت در صفحهٔ درس اول به کدام سوره و آیات نسبت داده شده است؟",
+      "question_type": "fact_lookup",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "سورهٔ دخان، آیات ۳۸ و ۳۹.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "زیر ترجمهٔ آیه، نام سورهٔ دخان و آیات ۳۸ و ۳۹ درج شده است.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_022",
+      "doc_id": "جمع_بندی_آیات_دینی",
+      "source_file": "جمع بندی آیات دینی.pdf",
+      "question": "طبق پیام آیهٔ درس اول، چرا خلقت جهان عبث و بی‌هدف دانسته نمی‌شود؟",
+      "question_type": "reasoning_from_text",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "زیرا خالق جهان حکیم است و موجودات به‌سوی هدفی حکیمانه در حرکت‌اند.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "پیام آیه، حکیم‌بودن خداوند را علت هدفمندی خلقت می‌داند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "reasoning_from_text",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_023",
+      "doc_id": "جمع_بندی_آیات_دینی",
+      "source_file": "جمع بندی آیات دینی.pdf",
+      "question": "در درس اول، «خلقت بر حق» چه معنایی دارد؟",
+      "question_type": "fact_lookup",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "یعنی جهان و موجودات آن بر حق آفریده شده‌اند و آفرینش بی‌هدف نیست.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "بند نخست پیام آیه معنای هدف‌داری خلقت را توضیح می‌دهد.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_024",
+      "doc_id": "جمع_بندی_آیات_دینی",
+      "source_file": "جمع بندی آیات دینی.pdf",
+      "question": "طبق پیام آیهٔ سورهٔ نساء ۱۳۴، عبادت خدا چه دو دسته هدفی را دربرمی‌گیرد؟",
+      "question_type": "fact_lookup",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "اهداف دنیوی و اخروی.",
+      "supporting_pages": [
+        3
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "پیام آیه در صفحهٔ سوم می‌گوید عبادت خدا اهداف دنیا و آخرت را دربرمی‌گیرد.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_025",
+      "doc_id": "جمع_بندی_آیات_دینی",
+      "source_file": "جمع بندی آیات دینی.pdf",
+      "question": "طبق صفحهٔ سوم، رابطهٔ جامع‌بودن هدف انسان با تعداد هدف‌های دربرگرفته‌شده چیست؟",
+      "question_type": "reasoning_from_text",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "هرچه هدف انسان جامع‌تر باشد، هدف‌های بیشتری را در خود جای می‌دهد.",
+      "supporting_pages": [
+        3
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "این نکته به‌صراحت در پیام آیه آمده است.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "reasoning_from_text",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_026",
+      "doc_id": "جمع_بندی_آیات_دینی",
+      "source_file": "جمع بندی آیات دینی.pdf",
+      "question": "بر اساس درس دوم، خداوند چه چیزی را به انسان نشان داده است؟",
+      "question_type": "fact_lookup",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "راه سعادت و شقاوت را.",
+      "supporting_pages": [
+        4
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "پیام آیهٔ سورهٔ انسان ۳ در صفحهٔ چهارم این نکته را بیان می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_027",
+      "doc_id": "جمع_بندی_آیات_دینی",
+      "source_file": "جمع بندی آیات دینی.pdf",
+      "question": "چرا انسان طبق متن مسئول سرنوشت خویش دانسته شده است؟",
+      "question_type": "reasoning_from_text",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "چون با اختیار خود می‌تواند راه درست یا غلط را انتخاب کند.",
+      "supporting_pages": [
+        4
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "متن مسئولیت سرنوشت را به اختیار انسان پیوند می‌دهد.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "reasoning_from_text",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_028",
+      "doc_id": "جمع_بندی_آیات_دینی",
+      "source_file": "جمع بندی آیات دینی.pdf",
+      "question": "طبق پیام آیهٔ سورهٔ شمس، چه گرایش‌هایی در وجود انسان قرار داده شده است؟",
+      "question_type": "fact_lookup",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "گرایش به نیکی و بیزاری از بدی.",
+      "supporting_pages": [
+        5
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "پیام آیه در صفحهٔ پنجم این دو گرایش را ذکر می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_029",
+      "doc_id": "جمع_بندی_آیات_دینی",
+      "source_file": "جمع بندی آیات دینی.pdf",
+      "question": "«نفس لوامه» در جزوه چگونه توضیح داده شده است؟",
+      "question_type": "definition",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "نفس سرزنشگر درونی که انسان را به‌خاطر بدی ملامت می‌کند و برای جلوگیری از زشتی در وجود او قرار داده شده است.",
+      "supporting_pages": [
+        6
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "صفحهٔ ششم نفس سرزنشگر را نفس لوامه می‌نامد.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "definition",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_030",
+      "doc_id": "جمع_بندی_آیات_دینی",
+      "source_file": "جمع بندی آیات دینی.pdf",
+      "question": "طبق درس سوم، چه زمانی زندگی دنیا «سرگرمی و بازی» توصیف شده است؟",
+      "question_type": "reasoning_from_text",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "وقتی زندگی بدون توجه به معاد دیده شود.",
+      "supporting_pages": [
+        7
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "پیام آیه در صفحهٔ هفتم این قید را بیان می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "reasoning_from_text",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_031",
+      "doc_id": "جمع_بندی_آیات_دینی",
+      "source_file": "جمع بندی آیات دینی.pdf",
+      "question": "طبق آیهٔ صفحهٔ هشتم، چه شرطی برای زندگی بدون ترس و اندوه بیان شده است؟",
+      "question_type": "fact_lookup",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "ایمان به خدا و روز آخرت و انجام کار نیکو.",
+      "supporting_pages": [
+        8
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "پیام آیهٔ سورهٔ مائده ۶۹ این سه شرط را برمی‌شمارد.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_032",
+      "doc_id": "جمع_بندی_آیات_دینی",
+      "source_file": "جمع بندی آیات دینی.pdf",
+      "question": "منکران معاد در آیهٔ سورهٔ جاثیه ۲۴، زندگی را چگونه می‌بینند؟",
+      "question_type": "interpretation",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "آن‌ها زندگی را محدود به همین زندگی دنیوی می‌دانند و مرگ و زندگی را به گذشت روزگار نسبت می‌دهند.",
+      "supporting_pages": [
+        9
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "پیام آیه در صفحهٔ نهم دیدگاه منکران معاد را شرح می‌دهد.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "interpretation",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_033",
+      "doc_id": "القای_الکترومغناطیس",
+      "source_file": "القای الکترومغناطیس.pdf",
+      "question": "سه عاملی که تغییر آن‌ها می‌تواند شار مغناطیسی را تغییر دهد چیست؟",
+      "question_type": "multi_fact",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "اندازهٔ میدان مغناطیسی، مساحت مدار بسته و زاویهٔ بین پیچه و راستای میدان مغناطیسی.",
+      "supporting_pages": [
+        1
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "صفحهٔ اول سه عامل را شماره‌گذاری کرده است.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "multi_fact",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_034",
+      "doc_id": "القای_الکترومغناطیس",
+      "source_file": "القای الکترومغناطیس.pdf",
+      "question": "فرمول شار مغناطیسی در جزوه چیست؟",
+      "question_type": "formula_lookup",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "Φ = B A cos θ.",
+      "supporting_pages": [
+        3
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "فرمول و تعریف نمادها در صفحهٔ سوم آمده است.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "formula_lookup",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_035",
+      "doc_id": "القای_الکترومغناطیس",
+      "source_file": "القای الکترومغناطیس.pdf",
+      "question": "زاویهٔ θ در فرمول شار مغناطیسی بین چه دو راستایی تعریف شده است؟",
+      "question_type": "definition",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "بین نیم‌خط عمود بر حلقه و میدان مغناطیسی.",
+      "supporting_pages": [
+        3
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "تعریف زاویه زیر فرمول در صفحهٔ سوم درج شده است.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "definition",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_036",
+      "doc_id": "القای_الکترومغناطیس",
+      "source_file": "القای الکترومغناطیس.pdf",
+      "question": "چه زمانی شار مغناطیسی عبوری از قاب بیشینه است؟",
+      "question_type": "fact_lookup",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "وقتی قاب بر میدان مغناطیسی عمود باشد؛ در این حالت θ=۰ و شار Φ=BA است.",
+      "supporting_pages": [
+        6
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "صفحهٔ ششم شرط بیشینه‌شدن شار و رابطهٔ آن را بیان می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_037",
+      "doc_id": "القای_الکترومغناطیس",
+      "source_file": "القای الکترومغناطیس.pdf",
+      "question": "چه زمانی شار مغناطیسی عبوری از قاب صفر می‌شود؟",
+      "question_type": "fact_lookup",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "وقتی قاب موازی راستای میدان مغناطیسی باشد؛ در این حالت θ=۹۰ درجه و cosθ=۰ است.",
+      "supporting_pages": [
+        6
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "صفحهٔ ششم شرط صفرشدن شار را بیان می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_038",
+      "doc_id": "القای_الکترومغناطیس",
+      "source_file": "القای الکترومغناطیس.pdf",
+      "question": "اگر میدان مغناطیسی ثابت باشد، با چه تغییرهایی می‌توان شار مغناطیسی را تغییر داد؟",
+      "question_type": "reasoning_from_text",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "با تغییر مساحت سطح یا زاویهٔ بین نیم‌خط عمود بر سطح و میدان.",
+      "supporting_pages": [
+        7
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "صفحهٔ هفتم تغییرات میدان، مساحت و زاویه را عوامل تغییر شار معرفی می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "reasoning_from_text",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_039",
+      "doc_id": "القای_الکترومغناطیس",
+      "source_file": "القای الکترومغناطیس.pdf",
+      "question": "قانون فاراده چه رابطه‌ای میان تغییر شار و نیروی محرکهٔ القایی بیان می‌کند؟",
+      "question_type": "fact_lookup",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "هرگاه شار مغناطیسی عبوری از مدار بسته تغییر کند، نیروی محرکه‌ای القا می‌شود که بزرگی آن با آهنگ تغییر شار متناسب است.",
+      "supporting_pages": [
+        12
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "تعریف قانون فاراده در صفحهٔ دوازدهم آمده است.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_040",
+      "doc_id": "القای_الکترومغناطیس",
+      "source_file": "القای الکترومغناطیس.pdf",
+      "question": "رابطهٔ نیروی محرکهٔ القایی برای N دور در جزوه چیست؟",
+      "question_type": "formula_lookup",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "ε = −N ΔΦ / Δt.",
+      "supporting_pages": [
+        12
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "فرمول فاراده در صفحهٔ دوازدهم درج شده است.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "formula_lookup",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_041",
+      "doc_id": "القای_الکترومغناطیس",
+      "source_file": "القای الکترومغناطیس.pdf",
+      "question": "اگر آهنگ تغییر شار مغناطیسی بیشتر شود، طبق جزوه چه تغییری رخ می‌دهد؟",
+      "question_type": "reasoning_from_text",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "نیروی محرکهٔ القایی و در نتیجه جریان القایی تولیدشده در مدار بیشتر می‌شود.",
+      "supporting_pages": [
+        12
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "نکتهٔ آغاز صفحهٔ دوازدهم این رابطه را بیان می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "reasoning_from_text",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_042",
+      "doc_id": "القای_الکترومغناطیس",
+      "source_file": "القای الکترومغناطیس.pdf",
+      "question": "اگر مقاومت پیچه R باشد، رابطهٔ جریان القایی برحسب نیروی محرکه چیست؟",
+      "question_type": "formula_lookup",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "I = ε/R؛ در جزوه همچنین I = −(N/R)(ΔΦ/Δt) نوشته شده است.",
+      "supporting_pages": [
+        13
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "صفحهٔ سیزدهم رابطهٔ جریان القایی و مقاومت را ارائه می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "formula_lookup",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_043",
+      "doc_id": "فیزیک_1_احتمالا_واسه_تجربی(تست)",
+      "source_file": "فیزیک 1 احتمالا واسه تجربی(تست).pdf",
+      "question": "مکانیک در جزوه چگونه تعریف شده است؟",
+      "question_type": "definition",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "بخشی از فیزیک است که دربارهٔ حرکت، علت حرکت، تعادل اجسام و شرایط تعادل بحث می‌کند.",
+      "supporting_pages": [
+        1
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "تعریف مکانیک در ابتدای صفحهٔ اول آمده است.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "definition",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_044",
+      "doc_id": "فیزیک_1_احتمالا_واسه_تجربی(تست)",
+      "source_file": "فیزیک 1 احتمالا واسه تجربی(تست).pdf",
+      "question": "تفاوت سینماتیک و دینامیک چیست؟",
+      "question_type": "compare",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "سینماتیک حرکت را بدون بررسی علت آن توصیف می‌کند؛ دینامیک حرکت را همراه با علت‌ها و نیروهای مؤثر بررسی می‌کند.",
+      "supporting_pages": [
+        1
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "صفحهٔ اول هر دو شاخه را جداگانه تعریف می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "compare",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_045",
+      "doc_id": "فیزیک_1_احتمالا_واسه_تجربی(تست)",
+      "source_file": "فیزیک 1 احتمالا واسه تجربی(تست).pdf",
+      "question": "استاتیک چه موضوعی را بررسی می‌کند؟",
+      "question_type": "definition",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "تعادل اجسام و شرایط تعادل را.",
+      "supporting_pages": [
+        1
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "تعریف استاتیک در فهرست شاخه‌های مکانیک آمده است.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "definition",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_046",
+      "doc_id": "فیزیک_1_احتمالا_واسه_تجربی(تست)",
+      "source_file": "فیزیک 1 احتمالا واسه تجربی(تست).pdf",
+      "question": "چرا حرکت در جزوه امری نسبی معرفی شده است؟",
+      "question_type": "reasoning_from_text",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "زیرا تشخیص حرکت به مبدأ یا ناظر انتخاب‌شده بستگی دارد.",
+      "supporting_pages": [
+        1
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "متن می‌گوید حرکت به مبدأ سنجش بستگی دارد.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "reasoning_from_text",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_047",
+      "doc_id": "فیزیک_1_احتمالا_واسه_تجربی(تست)",
+      "source_file": "فیزیک 1 احتمالا واسه تجربی(تست).pdf",
+      "question": "فردی در قطار متحرک با چمدان ایستاده است. چمدان نسبت به او و نسبت به فرد ساکن ایستگاه چگونه حرکت می‌کند؟",
+      "question_type": "application",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "نسبت به فرد داخل قطار ساکن است، اما نسبت به فرد ساکن در ایستگاه حرکت می‌کند.",
+      "supporting_pages": [
+        1
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "مثال دو ناظر در صفحهٔ اول برای نشان‌دادن نسبی‌بودن حرکت آمده است.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "application",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_048",
+      "doc_id": "فیزیک_1_احتمالا_واسه_تجربی(تست)",
+      "source_file": "فیزیک 1 احتمالا واسه تجربی(تست).pdf",
+      "question": "مبدأ مکان چیست؟",
+      "question_type": "definition",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "نقطه‌ای از دستگاه مختصات که به‌صورت دلخواه انتخاب می‌شود تا مکان متحرک نسبت به آن سنجیده شود.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "صفحهٔ دوم مبدأ مکان را تعریف می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "definition",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_049",
+      "doc_id": "فیزیک_1_احتمالا_واسه_تجربی(تست)",
+      "source_file": "فیزیک 1 احتمالا واسه تجربی(تست).pdf",
+      "question": "آیا مبدأ مکان الزاماً نقطهٔ شروع حرکت است؟",
+      "question_type": "fact_lookup",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "خیر؛ مبدأ مکان نقطه‌ای انتخابی برای سنجش مکان است و لزوماً نقطهٔ شروع حرکت نیست.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "این نکته صریحاً در صفحهٔ دوم آمده است.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_050",
+      "doc_id": "فیزیک_1_احتمالا_واسه_تجربی(تست)",
+      "source_file": "فیزیک 1 احتمالا واسه تجربی(تست).pdf",
+      "question": "تفاوت مکانیک کلاسیک و مکانیک کوانتومی در توصیف اندازهٔ اجسام چیست؟",
+      "question_type": "compare",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "در این جزوه، مکانیک کلاسیک برای اجسام بزرگ‌تر از اتم و مکانیک کوانتومی برای اجسام کوچک‌تر از اتم معرفی شده است.",
+      "supporting_pages": [
+        1
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "تعریف حوزه‌های مکانیک در صفحهٔ اول آمده است.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "compare",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_051",
+      "doc_id": "فیزیک_1_احتمالا_واسه_تجربی(تست)",
+      "source_file": "فیزیک 1 احتمالا واسه تجربی(تست).pdf",
+      "question": "مکانیک نسبیتی در جزوه برای چه اجسامی و چه سرعت‌هایی مطرح شده است؟",
+      "question_type": "fact_lookup",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "برای اجسام بزرگ‌تر از اتم که با سرعت‌های نزدیک سرعت نور حرکت می‌کنند.",
+      "supporting_pages": [
+        1
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "تعریف مکانیک نسبیتی در صفحهٔ اول است.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_052",
+      "doc_id": "فیزیک_1_احتمالا_واسه_تجربی(تست)",
+      "source_file": "فیزیک 1 احتمالا واسه تجربی(تست).pdf",
+      "question": "اگر جسم به نقطهٔ آغاز بازگردد، آیا جابه‌جایی آن الزاماً برابر طول مسیر است؟",
+      "question_type": "reasoning_from_text",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "خیر؛ چون جابه‌جایی به اختلاف مکان نهایی و اولیه بستگی دارد و در بازگشت به نقطهٔ آغاز صفر است، هرچند طول مسیر می‌تواند مثبت باشد.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "این پاسخ از تعریف حرکت و تمایز مکان/مسیر در مبحث حرکت بر خط راست پیروی می‌کند؛ برای این نسخه نیازمند بازبینی انسانی است.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "reasoning_from_text",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_053",
+      "doc_id": "فیزیک_1_احتمالا_واسه_تجربی(تست)",
+      "source_file": "فیزیک 1 احتمالا واسه تجربی(تست).pdf",
+      "question": "دینامیک در این جزوه با کدام قانون‌ها پیوند داده شده است؟",
+      "question_type": "fact_lookup",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "با قانون‌های نیوتن برای بررسی نیروها و حل مسائل حرکت.",
+      "supporting_pages": [
+        1
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "توضیح دینامیک در صفحهٔ اول به قانون‌های نیوتن اشاره می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_054",
+      "doc_id": "فیزیک_1_احتمالا_واسه_تجربی(تست)",
+      "source_file": "فیزیک 1 احتمالا واسه تجربی(تست).pdf",
+      "question": "طبق همین جزوه، نام نویسندهٔ اصلی کتاب درسی رسمی چیست؟",
+      "question_type": "unanswerable",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": false,
+      "reference_answer": "در صفحات بررسی‌شدهٔ این جزوه چنین اطلاعاتی ارائه نشده است.",
+      "supporting_pages": [
+        1
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "این داده در متن استخراج‌شدهٔ جزوه یافت نشد؛ باید سیستم از حدس‌زدن خودداری کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "unanswerable",
+        "easy"
+      ],
+      "status": "negative_control_needs_review"
+    },
+    {
+      "qa_id": "qa_055",
+      "doc_id": "زبان_1",
+      "source_file": "زبان 1.pdf",
+      "question": "در فهرست واژگان درس اول، معنی فارسی babysitter چیست؟",
+      "question_type": "vocabulary",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "پرستار بچه.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "جدول واژگان صفحهٔ دوم برابر babysitter را «پرستار بچه» آورده است.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "vocabulary",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_056",
+      "doc_id": "زبان_1",
+      "source_file": "زبان 1.pdf",
+      "question": "معنی فارسی accidental در فهرست واژگان چیست؟",
+      "question_type": "vocabulary",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "تصادفی.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "جدول واژگان صفحهٔ دوم این معادل را ثبت کرده است.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "vocabulary",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_057",
+      "doc_id": "زبان_1",
+      "source_file": "زبان 1.pdf",
+      "question": "معنی فارسی abroad چیست؟",
+      "question_type": "vocabulary",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "خارج از کشور.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "جدول واژگان صفحهٔ دوم معادل abroad را آورده است.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "vocabulary",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_058",
+      "doc_id": "زبان_1",
+      "source_file": "زبان 1.pdf",
+      "question": "معنی فارسی active voice چیست؟",
+      "question_type": "vocabulary",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "جملهٔ معلوم.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "در فهرست واژگان صفحهٔ دوم آمده است.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "vocabulary",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_059",
+      "doc_id": "زبان_1",
+      "source_file": "زبان 1.pdf",
+      "question": "معنی فارسی appreciation در این فهرست چیست؟",
+      "question_type": "vocabulary",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "قدردانی، درک، فهم یا ارزیابی.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "جدول چند معادل فارسی برای appreciation ذکر می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "vocabulary",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_060",
+      "doc_id": "زبان_1",
+      "source_file": "زبان 1.pdf",
+      "question": "معنی فارسی advise چیست؟",
+      "question_type": "vocabulary",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "نصیحت کردن یا توصیه کردن.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "جدول واژگان صفحهٔ دوم این معنی را ارائه می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "vocabulary",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_061",
+      "doc_id": "زبان_1",
+      "source_file": "زبان 1.pdf",
+      "question": "معنی فارسی advisor چیست؟",
+      "question_type": "vocabulary",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "مشاور یا راهنما؛ در جدول همچنین «معاون» آمده است.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "مدخل advisor در جدول واژگان آمده است.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "vocabulary",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_062",
+      "doc_id": "زبان_1",
+      "source_file": "زبان 1.pdf",
+      "question": "معنی فارسی care for چیست؟",
+      "question_type": "vocabulary",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "مراقبت کردن از؛ یا علاقه داشتن به.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "جدول واژگان صفحهٔ دوم هر دو معنی را آورده است.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "vocabulary",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_063",
+      "doc_id": "زبان_1",
+      "source_file": "زبان 1.pdf",
+      "question": "معنی فارسی childhood چیست؟",
+      "question_type": "vocabulary",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "بچگی، کودکی یا دوران بچگی.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "مدخل childhood در جدول واژگان آمده است.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "vocabulary",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_064",
+      "doc_id": "زبان_1",
+      "source_file": "زبان 1.pdf",
+      "question": "معنی فارسی blessing در فهرست واژگان چیست؟",
+      "question_type": "vocabulary",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "رحمت، برکت، دعای خیر، نعمت یا حمایت.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "جدول واژگان صفحهٔ دوم چند معادل blessing را ذکر می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "vocabulary",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_065",
+      "doc_id": "sample_persian",
+      "source_file": "sample_persian.pdf",
+      "question": "در شرح ابیات آغازین، گوینده چرا خدا را ستایش می‌کند؟",
+      "question_type": "interpretation",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "زیرا او را پاک و شایستهٔ خدایی می‌داند و خود را پیرو راهنمایی او معرفی می‌کند.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "شرح بندهای آغازین صفحهٔ دوم بر ستایش خدا و پیروی از راهنمایی او تأکید دارد.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "interpretation",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_066",
+      "doc_id": "sample_persian",
+      "source_file": "sample_persian.pdf",
+      "question": "در شرح متن، شکرگزاری چه اثری دارد؟",
+      "question_type": "fact_lookup",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "باعث افزایش نعمت می‌شود.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "شرح عبارت سعدی در صفحهٔ دوم می‌گوید شکرگزاری موجب افزایش نعمت است.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_067",
+      "doc_id": "sample_persian",
+      "source_file": "sample_persian.pdf",
+      "question": "در متن صفحهٔ دوم، چرا توصیف کامل خداوند برای انسان ممکن دانسته نشده است؟",
+      "question_type": "interpretation",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "چون خداوند در فهم بشر و در وهم و خیال انسان نمی‌گنجد و نمی‌توان کسی را شبیه او دانست.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "بندهای سوم و چهارم شرح صفحهٔ دوم این معنا را بیان می‌کنند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "interpretation",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_068",
+      "doc_id": "sample_persian",
+      "source_file": "sample_persian.pdf",
+      "question": "در شرح متن، چه ویژگی‌هایی برای خداوند برشمرده شده است؟",
+      "question_type": "fact_lookup",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "دانایی، بزرگی، بخشندگی، مهربانی و آگاهی از امور پنهان.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "شرح بندهای سوم تا ششم صفحهٔ دوم این صفات را نام می‌برد.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_069",
+      "doc_id": "sample_persian",
+      "source_file": "sample_persian.pdf",
+      "question": "عبارت «طاعتش موجب قربت است» در شرح فارسی چه معنایی دارد؟",
+      "question_type": "interpretation",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "اطاعت و فرمانبرداری از خداوند سبب نزدیک‌شدن به او می‌شود.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "شرح نثر سعدی در صفحهٔ دوم این معنی را ارائه می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "interpretation",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_070",
+      "doc_id": "sample_persian",
+      "source_file": "sample_persian.pdf",
+      "question": "در شرح ابیات، تلاش برای فضل و بخشش خداوند چگونه توصیف شده است؟",
+      "question_type": "interpretation",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "گوینده می‌گوید تنها فضل و بخشش خدا را می‌جوید و تلاشش را ناشی از لطف او می‌داند.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "بند دوم شرح ابیات صفحهٔ دوم این مضمون را بیان می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "interpretation",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_071",
+      "doc_id": "sample_persian",
+      "source_file": "sample_persian.pdf",
+      "question": "طبق شرح متن، چه چیزهایی سراسر وجود خداوند توصیف شده‌اند؟",
+      "question_type": "fact_lookup",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "عزت، شکوه، دانش، اطمینان، روشنایی، شادی، بخشش و پاداش.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "بند پنجم شرح صفحهٔ دوم این موارد را برمی‌شمارد.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_072",
+      "doc_id": "sample_persian",
+      "source_file": "sample_persian.pdf",
+      "question": "در شرح عبارت مربوط به پوشاندن عیب‌ها، چه معنایی بیان می‌شود؟",
+      "question_type": "interpretation",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "خداوند از امور پنهان آگاه است و عیب‌ونقص انسان‌ها را می‌پوشاند.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "بند ششم شرح صفحهٔ دوم این معنا را ذکر می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "interpretation",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_073",
+      "doc_id": "sample_persian",
+      "source_file": "sample_persian.pdf",
+      "question": "در این جزوه، تاریخ دقیق سرایش همهٔ ابیات آغازین چه سالی ذکر شده است؟",
+      "question_type": "unanswerable",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": false,
+      "reference_answer": "تاریخ دقیق سرایش در بخش بررسی‌شدهٔ جزوه ذکر نشده است.",
+      "supporting_pages": [
+        3
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "در متن استخراج‌شدهٔ صفحات مربوط، تاریخ سرایش درج نشده است.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "unanswerable",
+        "easy"
+      ],
+      "status": "negative_control_needs_review"
+    },
+    {
+      "qa_id": "qa_074",
+      "doc_id": "sample_persian",
+      "source_file": "sample_persian.pdf",
+      "question": "چه رابطه‌ای میان اطاعت و شکرگزاری در شرح نثر سعدی بیان شده است؟",
+      "question_type": "reasoning_from_text",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "اطاعت موجب نزدیکی به خداوند و شکرگزاری موجب افزایش نعمت دانسته شده است.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "شرح نثر سعدی هر دو رابطه را در یک عبارت بیان می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "reasoning_from_text",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_075",
+      "doc_id": "1023",
+      "source_file": "1023.pdf",
+      "question": "چکیدهٔ مقاله فضای سایبر را چگونه توصیف می‌کند؟",
+      "question_type": "summary",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "به‌عنوان محیطی مهندسی‌شده برای کنترل تحلیلی رفتار و جهت‌دهی به ذهن کاربران.",
+      "supporting_pages": [
+        1
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "چکیدهٔ صفحهٔ اول فضای سایبر را محیطی مهندسی‌شده توصیف می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "summary",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_076",
+      "doc_id": "1023",
+      "source_file": "1023.pdf",
+      "question": "چکیدهٔ مقاله چه پیامدهایی را برای طراحی‌های اعتیادآور در فضای سایبر برمی‌شمارد؟",
+      "question_type": "multi_fact",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "بازآرایی روانی و تغییر انگاره‌های ذهنی، تضعیف تمرکز، فرسایش تفکر خلاق و عمیق، افزایش اضطراب و انزوای اجتماعی.",
+      "supporting_pages": [
+        1
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "چکیدهٔ صفحهٔ اول این پیامدها را فهرست می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "multi_fact",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_077",
+      "doc_id": "1023",
+      "source_file": "1023.pdf",
+      "question": "در چکیده، مادر در برابر هجوم داده‌پایه چه نقشی می‌تواند داشته باشد؟",
+      "question_type": "fact_lookup",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "کنشگری راهبردی و معمار تفکر خلاق و مستقل فرزندان و حاکمیت شناختی آنان.",
+      "supporting_pages": [
+        1
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "چکیده نقش مادر را به‌عنوان کنشگر راهبردی بیان می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_078",
+      "doc_id": "1023",
+      "source_file": "1023.pdf",
+      "question": "«اقتصاد توجه» در مقدمه چه چیزی را منبع کمیاب و ارزشمند می‌داند؟",
+      "question_type": "definition",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "توجه انسان را، نه خود اطلاعات را.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "مقدمه با نقل ایدهٔ هربرت سایمون توجه را منبع کمیاب معرفی می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "definition",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_079",
+      "doc_id": "1023",
+      "source_file": "1023.pdf",
+      "question": "طبق مقدمه، چرا فضای سایبر صرفاً مجموعه‌ای از ابزارهای خنثی نیست؟",
+      "question_type": "reasoning_from_text",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "زیرا به‌صورت زیست‌بومی مهندسی‌شده عمل می‌کند که برای جلب و کنترل توجه و جهت‌دهی به ذهن کاربران طراحی شده است.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "مقدمه فضای سایبر را فراتر از ابزار خنثی توصیف می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "reasoning_from_text",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_080",
+      "doc_id": "1023",
+      "source_file": "1023.pdf",
+      "question": "طبق بخش پیشینه، هربرت سایمون در اقتصاد اطلاعات چه منبعی را کمیاب‌تر از خود اطلاعات می‌داند؟",
+      "question_type": "fact_lookup",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "توجه انسان را.",
+      "supporting_pages": [
+        3
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "صفحهٔ سوم به ایدهٔ سایمون دربارهٔ کمیابی توجه اشاره می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_081",
+      "doc_id": "1023",
+      "source_file": "1023.pdf",
+      "question": "شوشانا زوبوف طبق متن دربارهٔ شرکت‌های فناوری و «مازاد رفتاری» چه می‌گوید؟",
+      "question_type": "fact_lookup",
+      "difficulty": "hard",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "شرکت‌ها با استخراج مازاد رفتاری کاربران، محصولات پیش‌بینی تولید می‌کنند و در پی مهندسی و کنترل رفتار برای مقاصد تجاری‌اند.",
+      "supporting_pages": [
+        3
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "بخش پیشینه در صفحهٔ سوم دیدگاه زوبوف را شرح می‌دهد.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "hard"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_082",
+      "doc_id": "1023",
+      "source_file": "1023.pdf",
+      "question": "فناوری متقاعدکننده در متن با نام کدام پژوهشگر پیوند داده شده است؟",
+      "question_type": "fact_lookup",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "بی. جی. فاگ (B. J. Fogg).",
+      "supporting_pages": [
+        3
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "صفحهٔ سوم پایه‌گذاری پژوهش فناوری متقاعدکننده را به فاگ نسبت می‌دهد.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_083",
+      "doc_id": "1023",
+      "source_file": "1023.pdf",
+      "question": "طبق متن، نیکلاس کار دربارهٔ اثر اینترنت بر چه توانایی‌هایی هشدار می‌دهد؟",
+      "question_type": "fact_lookup",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "بازآرایی مغز به سمت تفکر سطحی و کاهش تمرکز عمیق.",
+      "supporting_pages": [
+        4
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "صفحهٔ چهارم دیدگاه نیکلاس کار و کاهش تمرکز عمیق را بیان می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_084",
+      "doc_id": "1023",
+      "source_file": "1023.pdf",
+      "question": "مقاله چه آزمایش تصادفی کنترل‌شده‌ای را با تعداد دقیق شرکت‌کنندگان گزارش می‌کند؟",
+      "question_type": "unanswerable",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": false,
+      "reference_answer": "در صفحات بررسی‌شده چنین آزمایش تصادفی با تعداد دقیق شرکت‌کنندگان گزارش نشده است.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "چکیده و مقدمهٔ بررسی‌شده، این نوع آزمایش و تعداد شرکت‌کنندگان را مشخص نمی‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "unanswerable",
+        "easy"
+      ],
+      "status": "negative_control_needs_review"
+    },
+    {
+      "qa_id": "qa_085",
+      "doc_id": "جزوه_شیمی_ترکیبات_آلی",
+      "source_file": "جزوه شیمی ترکیبات آلی.pdf",
+      "question": "متان نخستین عضو کدام خانوادهٔ ترکیبات معرفی شده است؟",
+      "question_type": "fact_lookup",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "خانوادهٔ آلکان‌ها.",
+      "supporting_pages": [
+        3
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "جدول ترکیبات آلی در صفحهٔ سوم این موضوع را می‌گوید.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_086",
+      "doc_id": "جزوه_شیمی_ترکیبات_آلی",
+      "source_file": "جزوه شیمی ترکیبات آلی.pdf",
+      "question": "گاز شهری طبق جزوه عمدتاً از چه ترکیبی تشکیل شده است؟",
+      "question_type": "fact_lookup",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "متان.",
+      "supporting_pages": [
+        3
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "توضیح متان در صفحهٔ سوم گاز شهری را عمدتاً متان معرفی می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_087",
+      "doc_id": "جزوه_شیمی_ترکیبات_آلی",
+      "source_file": "جزوه شیمی ترکیبات آلی.pdf",
+      "question": "پروپان چندمین عضو خانوادهٔ آلکان‌ها معرفی شده است؟",
+      "question_type": "fact_lookup",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "سومین عضو.",
+      "supporting_pages": [
+        3
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "ردیف پروپان در جدول صفحهٔ سوم این مورد را ذکر می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_088",
+      "doc_id": "جزوه_شیمی_ترکیبات_آلی",
+      "source_file": "جزوه شیمی ترکیبات آلی.pdf",
+      "question": "متانال نخستین عضو کدام خانواده معرفی شده است؟",
+      "question_type": "fact_lookup",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "خانوادهٔ آلدهیدها.",
+      "supporting_pages": [
+        3
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "ردیف متانال در صفحهٔ سوم چنین می‌گوید.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_089",
+      "doc_id": "جزوه_شیمی_ترکیبات_آلی",
+      "source_file": "جزوه شیمی ترکیبات آلی.pdf",
+      "question": "دو کاربرد یا ویژگی اتانول که در جزوه آمده چیست؟",
+      "question_type": "multi_fact",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "نمونه‌ای از سوخت سبز است و از پسماندهای گیاهی به‌دست می‌آید؛ در آب به هر نسبتی حل می‌شود و در تهیهٔ مواد دارویی، آرایشی و بهداشتی کاربرد دارد.",
+      "supporting_pages": [
+        3
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "ردیف اتانول در جدول صفحهٔ سوم این ویژگی‌ها را بیان می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "multi_fact",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_090",
+      "doc_id": "جزوه_شیمی_ترکیبات_آلی",
+      "source_file": "جزوه شیمی ترکیبات آلی.pdf",
+      "question": "مخلوط آب و اتیلن گلیکول برای چه کاری مصرف می‌شود؟",
+      "question_type": "fact_lookup",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "به‌عنوان ضدیخ.",
+      "supporting_pages": [
+        3
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "ردیف اتیلن گلیکول در صفحهٔ سوم کاربرد ضدیخ را ذکر می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_091",
+      "doc_id": "جزوه_شیمی_ترکیبات_آلی",
+      "source_file": "جزوه شیمی ترکیبات آلی.pdf",
+      "question": "محلول ۵ درصد جرمی استیک اسید در آب چه نام یا کاربردی دارد؟",
+      "question_type": "fact_lookup",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "به‌عنوان سرکهٔ خوراکی استفاده می‌شود.",
+      "supporting_pages": [
+        3
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "ردیف استیک اسید در صفحهٔ سوم این کاربرد را بیان می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_092",
+      "doc_id": "جزوه_شیمی_ترکیبات_آلی",
+      "source_file": "جزوه شیمی ترکیبات آلی.pdf",
+      "question": "چرا شکر طبق جزوه در آب محلول است؟",
+      "question_type": "reasoning_from_text",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "به‌دلیل داشتن گروه‌های قطبی فراوان.",
+      "supporting_pages": [
+        3
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "ردیف شکر در جدول صفحهٔ سوم دلیل انحلال را ذکر می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "reasoning_from_text",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_093",
+      "doc_id": "جزوه_شیمی_ترکیبات_آلی",
+      "source_file": "جزوه شیمی ترکیبات آلی.pdf",
+      "question": "استون نخستین عضو کدام خانواده است و چه نوع ترکیبی معرفی شده است؟",
+      "question_type": "fact_lookup",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "نخستین عضو خانوادهٔ کتون‌ها و یک ترکیب آلی اکسیژن‌دار و قطبی.",
+      "supporting_pages": [
+        3
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "ردیف استون در جدول صفحهٔ سوم این موارد را ذکر می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_094",
+      "doc_id": "جزوه_شیمی_ترکیبات_آلی",
+      "source_file": "جزوه شیمی ترکیبات آلی.pdf",
+      "question": "هگزان در جزوه چه کاربردی دارد؟",
+      "question_type": "fact_lookup",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "حلال مواد ناقطبی و رقیق‌کنندهٔ رنگ (تینر) است.",
+      "supporting_pages": [
+        3
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "ردیف هگزان در جدول صفحهٔ سوم این کاربردها را ذکر می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_095",
+      "doc_id": "دیفرانسیل_۴_removed_removed",
+      "source_file": "دیفرانسیل ۴_removed_removed.pdf",
+      "question": "طبق مقدمهٔ جزوه، چرا در حل مسائل ریاضی از تبدیل‌ها استفاده می‌شود؟",
+      "question_type": "reasoning_from_text",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "چون با انتقال مسئله از یک فضا به فضای دیگر، مسئله می‌تواند ساده‌تر و قابل‌حل‌تر شود.",
+      "supporting_pages": [
+        1
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "صفحهٔ اول این دلیل را به‌صراحت توضیح می‌دهد.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "reasoning_from_text",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_096",
+      "doc_id": "دیفرانسیل_۴_removed_removed",
+      "source_file": "دیفرانسیل ۴_removed_removed.pdf",
+      "question": "جزوه تبدیل لاپلاس را برای حل چه نوع معادلاتی پیشنهاد می‌کند؟",
+      "question_type": "fact_lookup",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "معادلات دیفرانسیل.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "صفحهٔ دوم می‌گوید لاپلاس را می‌توان برای حل معادلات دیفرانسیل به کار برد.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_097",
+      "doc_id": "دیفرانسیل_۴_removed_removed",
+      "source_file": "دیفرانسیل ۴_removed_removed.pdf",
+      "question": "تعریف انتگرالی تبدیل لاپلاس که در جزوه آمده چیست؟",
+      "question_type": "formula_lookup",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "L{f(x)} = ∫₀^∞ e^(−sx) f(x) dx.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "فرمول انتگرالی تبدیل لاپلاس در صفحهٔ دوم چاپ شده است.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "formula_lookup",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_098",
+      "doc_id": "دیفرانسیل_۴_removed_removed",
+      "source_file": "دیفرانسیل ۴_removed_removed.pdf",
+      "question": "در نمادگذاری صفحهٔ دوم، تبدیل لاپلاس تابع f(x) با چه نمادی نشان داده می‌شود؟",
+      "question_type": "fact_lookup",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "با F(s) نشان داده می‌شود.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "در صفحهٔ دوم رابطهٔ L{f(x)} = F(s) آمده است.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_099",
+      "doc_id": "دیفرانسیل_۴_removed_removed",
+      "source_file": "دیفرانسیل ۴_removed_removed.pdf",
+      "question": "ایدهٔ کلی حل با تبدیل لاپلاس که در جزوه توضیح داده شده چیست؟",
+      "question_type": "summary",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "ابتدا معادلهٔ دیفرانسیل به فضای تبدیل برده می‌شود و سپس با کار در فضای تبدیل، پاسخ نهایی به دست می‌آید.",
+      "supporting_pages": [
+        1
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "صفحهٔ دوم استفاده از تبدیل برای حل معادله و رسیدن به جواب نهایی را شرح می‌دهد.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "summary",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_100",
+      "doc_id": "دیفرانسیل_۴_removed_removed",
+      "source_file": "دیفرانسیل ۴_removed_removed.pdf",
+      "question": "در جزوه، چند مثال حل‌شده از معادلات دیفرانسیل مرتبهٔ سوم با جواب نهایی آمده است؟",
+      "question_type": "unanswerable",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": false,
+      "reference_answer": "در صفحات بررسی‌شده تعداد مشخصی از مثال‌های حل‌شدهٔ مرتبهٔ سوم گزارش نشده است.",
+      "supporting_pages": [
+        1
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "محتوای استخراج‌شدهٔ این صفحات به تعداد چنین مثال‌هایی اشاره نمی‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "unanswerable",
+        "easy"
+      ],
+      "status": "negative_control_needs_review"
+    },
+    {
+      "qa_id": "qa_101",
+      "doc_id": "paper1047",
+      "source_file": "paper1047.pdf",
+      "question": "چکیدهٔ مقاله، سایبرنتیک را چگونه تعریف می‌کند؟",
+      "question_type": "summary",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "به‌عنوان کنترل مبتنی بر جریان‌مندی اطلاعات و الگویی برای ایجاد، توسعه و تثبیت قدرت.",
+      "supporting_pages": [
+        1
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "چکیدهٔ صفحهٔ اول تعریف سایبرنتیک و نقش آن در قدرت را مطرح می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "summary",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_102",
+      "doc_id": "paper1047",
+      "source_file": "paper1047.pdf",
+      "question": "طبق چکیده، فراسیستم سازمان ملل چگونه نوعی کنترل سایبرنتیکی را اعمال می‌کند؟",
+      "question_type": "fact_lookup",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "از طریق تدوین، تصویب و تجویز اسناد متعدد و بازخوردگیری از میزان انطباق عملکرد کشورها با آن اسناد.",
+      "supporting_pages": [
+        1
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "چکیدهٔ صفحهٔ اول دو مسیر اصلی را بیان می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_103",
+      "doc_id": "paper1047",
+      "source_file": "paper1047.pdf",
+      "question": "مهم‌ترین شاخصهٔ کنترلی سازمان ملل طبق چکیده چیست؟",
+      "question_type": "fact_lookup",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "برابری جنسیتی.",
+      "supporting_pages": [
+        1
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "این عبارت در چکیدهٔ صفحهٔ اول تصریح شده است.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "fact_lookup",
+        "easy"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_104",
+      "doc_id": "paper1047",
+      "source_file": "paper1047.pdf",
+      "question": "مثال موشک خودهدایت‌شونده در مقاله چه مفهومی از بازخورد را توضیح می‌دهد؟",
+      "question_type": "definition",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "سامانه با دریافت اطلاعات از حسگرها مسیر خود را تنظیم می‌کند؛ بازخورد منفی خروج از مسیر را تشخیص می‌دهد و اصلاح لازم را فعال می‌کند.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "مقدمهٔ صفحهٔ دوم سازوکار حسگر و بازخورد مثبت/منفی را شرح می‌دهد.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "definition",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_105",
+      "doc_id": "paper1047",
+      "source_file": "paper1047.pdf",
+      "question": "چرا مثال موشک برای توضیح سایبرنتیک در جوامع انسانی آورده شده است؟",
+      "question_type": "reasoning_from_text",
+      "difficulty": "medium",
+      "question_language": "fa",
+      "answerable": true,
+      "reference_answer": "برای نشان‌دادن اینکه منطق کنترل و بازخورد فقط در ماشین‌ها نیست و می‌تواند در کنترل انسان‌ها و جوامع نیز به‌کار رود.",
+      "supporting_pages": [
+        2
+      ],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "صفحهٔ دوم از کنترل موشک به کاربرد کنترل سایبرنتیکی در جوامع انسانی گذر می‌کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "reasoning_from_text",
+        "medium"
+      ],
+      "status": "draft_needs_human_review"
+    },
+    {
+      "qa_id": "qa_106",
+      "doc_id": "والیبال",
+      "source_file": "والیبال.pdf",
+      "question": "نام و شمارهٔ تماس داور اصلی آخرین مسابقهٔ تیم ملی در این سند چیست؟",
+      "question_type": "unanswerable",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": false,
+      "reference_answer": "اطلاعات کافی برای پاسخ به این سؤال در سند مشخص‌شده وجود ندارد.",
+      "supporting_pages": [],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "سؤال کنترلیِ غیرقابل‌پاسخ؛ سیستم باید از حدس‌زدن خودداری کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "unanswerable",
+        "easy"
+      ],
+      "status": "negative_control_needs_review"
+    },
+    {
+      "qa_id": "qa_107",
+      "doc_id": "کار_با_کودک",
+      "source_file": "کار با کودک.pdf",
+      "question": "نام کامل تمام کودکانی که در فعالیت‌ها شرکت کرده‌اند چیست؟",
+      "question_type": "unanswerable",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": false,
+      "reference_answer": "اطلاعات کافی برای پاسخ به این سؤال در سند مشخص‌شده وجود ندارد.",
+      "supporting_pages": [],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "سؤال کنترلیِ غیرقابل‌پاسخ؛ سیستم باید از حدس‌زدن خودداری کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "unanswerable",
+        "easy"
+      ],
+      "status": "negative_control_needs_review"
+    },
+    {
+      "qa_id": "qa_108",
+      "doc_id": "القای_الکترومغناطیس",
+      "source_file": "القای الکترومغناطیس.pdf",
+      "question": "مقدار عددی میدان مغناطیسی در آزمایش ثبت‌شده چند تسلا است؟",
+      "question_type": "unanswerable",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": false,
+      "reference_answer": "اطلاعات کافی برای پاسخ به این سؤال در سند مشخص‌شده وجود ندارد.",
+      "supporting_pages": [],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "سؤال کنترلیِ غیرقابل‌پاسخ؛ سیستم باید از حدس‌زدن خودداری کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "unanswerable",
+        "easy"
+      ],
+      "status": "negative_control_needs_review"
+    },
+    {
+      "qa_id": "qa_109",
+      "doc_id": "جمع_بندی_آیات_دینی",
+      "source_file": "جمع بندی آیات دینی.pdf",
+      "question": "چه تاریخ دقیقی برای برگزاری آزمون این درس اعلام شده است؟",
+      "question_type": "unanswerable",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": false,
+      "reference_answer": "اطلاعات کافی برای پاسخ به این سؤال در سند مشخص‌شده وجود ندارد.",
+      "supporting_pages": [],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "سؤال کنترلیِ غیرقابل‌پاسخ؛ سیستم باید از حدس‌زدن خودداری کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "unanswerable",
+        "easy"
+      ],
+      "status": "negative_control_needs_review"
+    },
+    {
+      "qa_id": "qa_110",
+      "doc_id": "زبان_1",
+      "source_file": "زبان 1.pdf",
+      "question": "شماره تلفن نویسندهٔ کتاب درسی در این صفحه چیست؟",
+      "question_type": "unanswerable",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": false,
+      "reference_answer": "اطلاعات کافی برای پاسخ به این سؤال در سند مشخص‌شده وجود ندارد.",
+      "supporting_pages": [],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "سؤال کنترلیِ غیرقابل‌پاسخ؛ سیستم باید از حدس‌زدن خودداری کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "unanswerable",
+        "easy"
+      ],
+      "status": "negative_control_needs_review"
+    },
+    {
+      "qa_id": "qa_111",
+      "doc_id": "sample_persian",
+      "source_file": "sample_persian.pdf",
+      "question": "چه تعداد دانش‌آموز در کلاسِ گوینده حضور داشته‌اند؟",
+      "question_type": "unanswerable",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": false,
+      "reference_answer": "اطلاعات کافی برای پاسخ به این سؤال در سند مشخص‌شده وجود ندارد.",
+      "supporting_pages": [],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "سؤال کنترلیِ غیرقابل‌پاسخ؛ سیستم باید از حدس‌زدن خودداری کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "unanswerable",
+        "easy"
+      ],
+      "status": "negative_control_needs_review"
+    },
+    {
+      "qa_id": "qa_112",
+      "doc_id": "1023",
+      "source_file": "1023.pdf",
+      "question": "نام نرم‌افزار آماری استفاده‌شده برای تحلیل داده‌های میدانی و نسخهٔ آن چیست؟",
+      "question_type": "unanswerable",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": false,
+      "reference_answer": "اطلاعات کافی برای پاسخ به این سؤال در سند مشخص‌شده وجود ندارد.",
+      "supporting_pages": [],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "سؤال کنترلیِ غیرقابل‌پاسخ؛ سیستم باید از حدس‌زدن خودداری کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "unanswerable",
+        "easy"
+      ],
+      "status": "negative_control_needs_review"
+    },
+    {
+      "qa_id": "qa_113",
+      "doc_id": "جزوه_شیمی_ترکیبات_آلی",
+      "source_file": "جزوه شیمی ترکیبات آلی.pdf",
+      "question": "قیمت روز متان در بازار ایران طبق این جزوه چقدر است؟",
+      "question_type": "unanswerable",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": false,
+      "reference_answer": "اطلاعات کافی برای پاسخ به این سؤال در سند مشخص‌شده وجود ندارد.",
+      "supporting_pages": [],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "سؤال کنترلیِ غیرقابل‌پاسخ؛ سیستم باید از حدس‌زدن خودداری کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "unanswerable",
+        "easy"
+      ],
+      "status": "negative_control_needs_review"
+    },
+    {
+      "qa_id": "qa_114",
+      "doc_id": "دیفرانسیل_۴_removed_removed",
+      "source_file": "دیفرانسیل ۴_removed_removed.pdf",
+      "question": "زمان دقیق برگزاری امتحان درس در جزوه چه روز و ساعتی است؟",
+      "question_type": "unanswerable",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": false,
+      "reference_answer": "اطلاعات کافی برای پاسخ به این سؤال در سند مشخص‌شده وجود ندارد.",
+      "supporting_pages": [],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "سؤال کنترلیِ غیرقابل‌پاسخ؛ سیستم باید از حدس‌زدن خودداری کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "unanswerable",
+        "easy"
+      ],
+      "status": "negative_control_needs_review"
+    },
+    {
+      "qa_id": "qa_115",
+      "doc_id": "فیزیک_1_احتمالا_واسه_تجربی(تست)",
+      "source_file": "فیزیک 1 احتمالا واسه تجربی(تست).pdf",
+      "question": "در آزمایش این جزوه، دمای اتاق با دقت صدم درجه چند ثبت شده است؟",
+      "question_type": "unanswerable",
+      "difficulty": "easy",
+      "question_language": "fa",
+      "answerable": false,
+      "reference_answer": "اطلاعات کافی برای پاسخ به این سؤال در سند مشخص‌شده وجود ندارد.",
+      "supporting_pages": [],
+      "supporting_chunk_ids": [],
+      "evidence_summary": "سؤال کنترلیِ غیرقابل‌پاسخ؛ سیستم باید از حدس‌زدن خودداری کند.",
+      "acceptable_answer_notes": "معنای پاسخ مرجع باید حفظ شود؛ عبارت‌بندی متفاوت قابل قبول است. برای سؤال چندبخشی، همهٔ اجزای کلیدی بررسی شوند.",
+      "evaluation_tags": [
+        "unanswerable",
+        "easy"
+      ],
+      "status": "negative_control_needs_review"
+    }
+  ]
+}

@@ -138,6 +138,16 @@ LLM_MODELS = {
         "filename": "qwen2.5-3b-instruct-q4_k_m.gguf",
         "desc": "کوئن ۲.۵ سه میلیارد پارامتری (~۱.۹ گیگابایت)، کیفیت عالی برای اجرای یکپارچه"
     },
+    "qwen-3-8b": {
+        "repo": "Qwen/Qwen3-8B-GGUF",
+        "filename": "Qwen3-8B-Q4_K_M.gguf",
+        "desc": "مدل رسمی کوئن ۳ با ۸ میلیارد پارامتر نسخه کوانتایز شده Q4_K_M علی‌بابا (حجم ۵.۰۲ گیگابایت)"
+    },
+    "qwen3-8b": {
+        "repo": "Qwen/Qwen3-8B-GGUF",
+        "filename": "Qwen3-8B-Q4_K_M.gguf",
+        "desc": "مدل رسمی کوئن ۳ با ۸ میلیارد پارامتر نسخه کوانتایز شده Q4_K_M علی‌بابا"
+    },
     "qwen-7b": {
         "repo": "Qwen/Qwen2.5-7B-Instruct-GGUF",
         "filename": "qwen2.5-7b-instruct-q4_k_m.gguf",
@@ -164,7 +174,10 @@ LLM_MODELS = {
 # ۴. انتخاب مدل‌های فعال و شتاب‌دهنده گرافیکی (Active Selection & Hardware)
 # =====================================================================
 ACTIVE_EMBEDDING = os.environ.get("ACTIVE_EMBEDDING", "e5-small")
-ACTIVE_LLM = os.environ.get("ACTIVE_LLM", "qwen-1.5b")
+ACTIVE_LLM = os.environ.get("ACTIVE_LLM", "qwen-3-8b")
+
+# اجبار اجرای مدل‌های هوش مصنوعی صرفاً روی GPU (در کولب جهت ممانعت از کندی CPU)
+FORCE_GPU = os.environ.get("FORCE_GPU", "1" if IS_COLAB else "0") == "1"
 
 # تنظیمات شتاب‌دهنده کارت گرافیک (GPU Offloading):
 # مقدار 1- در llama-cpp به معنی انتقال ۱۰۰٪ لایه‌ها به VRAM کارت گرافیک (مثلاً Nvidia T4 کولب) است.

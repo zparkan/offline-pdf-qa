@@ -245,6 +245,13 @@ class ModelManager:
 
         if llm_info:
             target_file = self.llm_dir / llm_info.get("filename", "")
+            # جستجوی هوشمند در پوشه درایو: اگر نام فایل متفاوت باشد ولی فایل GGUF در پوشه موجود باشد
+            if not target_file.exists():
+                existing_ggufs = [f for f in self.llm_dir.glob("*.gguf") if f.stat().st_size > 1024 * 1024]
+                if existing_ggufs:
+                    target_file = existing_ggufs[0]
+                    print(f"[✓] فایل مدل زبانی موجود در پوشه شناسایی شد: {target_file.name}")
+
             if target_file.exists() and target_file.stat().st_size > 1024 * 1024:
                 status_report["llm"] = {
                     "success": True,

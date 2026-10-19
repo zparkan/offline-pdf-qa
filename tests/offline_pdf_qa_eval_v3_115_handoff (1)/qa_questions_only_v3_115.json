@@ -1,0 +1,697 @@
+{
+  "dataset_id": "offline_pdf_qa_eval_v3_115",
+  "version": "3.0.0",
+  "instructions": "برای هر سؤال، سامانه را فقط با سند PDF معرفی‌شده یا مجموعهٔ اسنادِ در نظر گرفته‌شده برای آزمون اجرا کنید. پاسخ و صفحهٔ استنادشده را ثبت کنید. فایل مرجع را هنگام اجرای مدل به آن ندهید.",
+  "items": [
+    {
+      "qa_id": "qa_001",
+      "source_file": "والیبال.pdf",
+      "question": "فدراسیون والیبال ایران از چه سالی استقلال یافت؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_002",
+      "source_file": "والیبال.pdf",
+      "question": "فدراسیون والیبال ایران در اواخر کدام دهه به عضویت فدراسیون جهانی والیبال درآمد؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_003",
+      "source_file": "والیبال.pdf",
+      "question": "سه مورد از وظایف فدراسیون والیبال را نام ببرید.",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_004",
+      "source_file": "والیبال.pdf",
+      "question": "چرا لیگ داخلی پویا برای تیم‌های ملی اهمیت دارد؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_005",
+      "source_file": "والیبال.pdf",
+      "question": "دو چالش اقتصادی فدراسیون والیبال که در سند ذکر شده چیست؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_006",
+      "source_file": "والیبال.pdf",
+      "question": "استعدادیابی والیبال در مدارس از چه گروه سنی پیشنهاد شده است؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_007",
+      "source_file": "والیبال.pdf",
+      "question": "برای کاهش وابستگی مالی فدراسیون، دو راهکار مطرح‌شده را بیان کنید.",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_008",
+      "source_file": "والیبال.pdf",
+      "question": "مدیریت دانش چه کمکی به توسعهٔ والیبال می‌کند؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_009",
+      "source_file": "والیبال.pdf",
+      "question": "چرا والیبال ساحلی در ایران ظرفیت توسعه دارد؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_010",
+      "source_file": "والیبال.pdf",
+      "question": "نتیجه‌گیری سند برای تداوم توسعهٔ والیبال ایران بر چه محورهایی تأکید می‌کند؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_011",
+      "source_file": "کار با کودک.pdf",
+      "question": "سند سه هدف اصلی فعالیت کار با کودک را چه می‌داند؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_012",
+      "source_file": "کار با کودک.pdf",
+      "question": "چهار وسیلهٔ پیشنهادی برای میز کودک را نام ببرید.",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_013",
+      "source_file": "کار با کودک.pdf",
+      "question": "برای فراهم‌کردن امکان نقاشی و رنگ‌آمیزی، چرا هم کاغذ سفید و هم کاربرگ چاپی پیشنهاد شده است؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_014",
+      "source_file": "کار با کودک.pdf",
+      "question": "در نقاشی آزاد، چرا بهتر است کودک خودش موضوع نقاشی را انتخاب کند؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_015",
+      "source_file": "کار با کودک.pdf",
+      "question": "طبق سند، چه چیزی می‌تواند انگیزهٔ کودک برای پایان‌دادن به نقاشی را افزایش دهد؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_016",
+      "source_file": "کار با کودک.pdf",
+      "question": "چرا مربی و مسئول تعامل با کودک بخش مهمی از میز کودک دانسته شده‌اند؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_017",
+      "source_file": "کار با کودک.pdf",
+      "question": "برای ساخت کاردستی گروهی، چه اقلامی پیشنهاد شده است؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_018",
+      "source_file": "کار با کودک.pdf",
+      "question": "پیش از نقاشی روی بدن کودک، چه اجازه‌ای باید گرفته شود؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_019",
+      "source_file": "کار با کودک.pdf",
+      "question": "برای سریع‌ترشدن نقاشی روی صورت، چه تقسیم کاری پیشنهاد شده است؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_020",
+      "source_file": "کار با کودک.pdf",
+      "question": "آینه در فعالیت نقاشی روی صورت چه نقشی می‌تواند داشته باشد؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_021",
+      "source_file": "جمع بندی آیات دینی.pdf",
+      "question": "آیهٔ مربوط به هدفمندی خلقت در صفحهٔ درس اول به کدام سوره و آیات نسبت داده شده است؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_022",
+      "source_file": "جمع بندی آیات دینی.pdf",
+      "question": "طبق پیام آیهٔ درس اول، چرا خلقت جهان عبث و بی‌هدف دانسته نمی‌شود؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_023",
+      "source_file": "جمع بندی آیات دینی.pdf",
+      "question": "در درس اول، «خلقت بر حق» چه معنایی دارد؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_024",
+      "source_file": "جمع بندی آیات دینی.pdf",
+      "question": "طبق پیام آیهٔ سورهٔ نساء ۱۳۴، عبادت خدا چه دو دسته هدفی را دربرمی‌گیرد؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_025",
+      "source_file": "جمع بندی آیات دینی.pdf",
+      "question": "طبق صفحهٔ سوم، رابطهٔ جامع‌بودن هدف انسان با تعداد هدف‌های دربرگرفته‌شده چیست؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_026",
+      "source_file": "جمع بندی آیات دینی.pdf",
+      "question": "بر اساس درس دوم، خداوند چه چیزی را به انسان نشان داده است؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_027",
+      "source_file": "جمع بندی آیات دینی.pdf",
+      "question": "چرا انسان طبق متن مسئول سرنوشت خویش دانسته شده است؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_028",
+      "source_file": "جمع بندی آیات دینی.pdf",
+      "question": "طبق پیام آیهٔ سورهٔ شمس، چه گرایش‌هایی در وجود انسان قرار داده شده است؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_029",
+      "source_file": "جمع بندی آیات دینی.pdf",
+      "question": "«نفس لوامه» در جزوه چگونه توضیح داده شده است؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_030",
+      "source_file": "جمع بندی آیات دینی.pdf",
+      "question": "طبق درس سوم، چه زمانی زندگی دنیا «سرگرمی و بازی» توصیف شده است؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_031",
+      "source_file": "جمع بندی آیات دینی.pdf",
+      "question": "طبق آیهٔ صفحهٔ هشتم، چه شرطی برای زندگی بدون ترس و اندوه بیان شده است؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_032",
+      "source_file": "جمع بندی آیات دینی.pdf",
+      "question": "منکران معاد در آیهٔ سورهٔ جاثیه ۲۴، زندگی را چگونه می‌بینند؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_033",
+      "source_file": "القای الکترومغناطیس.pdf",
+      "question": "سه عاملی که تغییر آن‌ها می‌تواند شار مغناطیسی را تغییر دهد چیست؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_034",
+      "source_file": "القای الکترومغناطیس.pdf",
+      "question": "فرمول شار مغناطیسی در جزوه چیست؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_035",
+      "source_file": "القای الکترومغناطیس.pdf",
+      "question": "زاویهٔ θ در فرمول شار مغناطیسی بین چه دو راستایی تعریف شده است؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_036",
+      "source_file": "القای الکترومغناطیس.pdf",
+      "question": "چه زمانی شار مغناطیسی عبوری از قاب بیشینه است؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_037",
+      "source_file": "القای الکترومغناطیس.pdf",
+      "question": "چه زمانی شار مغناطیسی عبوری از قاب صفر می‌شود؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_038",
+      "source_file": "القای الکترومغناطیس.pdf",
+      "question": "اگر میدان مغناطیسی ثابت باشد، با چه تغییرهایی می‌توان شار مغناطیسی را تغییر داد؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_039",
+      "source_file": "القای الکترومغناطیس.pdf",
+      "question": "قانون فاراده چه رابطه‌ای میان تغییر شار و نیروی محرکهٔ القایی بیان می‌کند؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_040",
+      "source_file": "القای الکترومغناطیس.pdf",
+      "question": "رابطهٔ نیروی محرکهٔ القایی برای N دور در جزوه چیست؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_041",
+      "source_file": "القای الکترومغناطیس.pdf",
+      "question": "اگر آهنگ تغییر شار مغناطیسی بیشتر شود، طبق جزوه چه تغییری رخ می‌دهد؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_042",
+      "source_file": "القای الکترومغناطیس.pdf",
+      "question": "اگر مقاومت پیچه R باشد، رابطهٔ جریان القایی برحسب نیروی محرکه چیست؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_043",
+      "source_file": "فیزیک 1 احتمالا واسه تجربی(تست).pdf",
+      "question": "مکانیک در جزوه چگونه تعریف شده است؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_044",
+      "source_file": "فیزیک 1 احتمالا واسه تجربی(تست).pdf",
+      "question": "تفاوت سینماتیک و دینامیک چیست؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_045",
+      "source_file": "فیزیک 1 احتمالا واسه تجربی(تست).pdf",
+      "question": "استاتیک چه موضوعی را بررسی می‌کند؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_046",
+      "source_file": "فیزیک 1 احتمالا واسه تجربی(تست).pdf",
+      "question": "چرا حرکت در جزوه امری نسبی معرفی شده است؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_047",
+      "source_file": "فیزیک 1 احتمالا واسه تجربی(تست).pdf",
+      "question": "فردی در قطار متحرک با چمدان ایستاده است. چمدان نسبت به او و نسبت به فرد ساکن ایستگاه چگونه حرکت می‌کند؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_048",
+      "source_file": "فیزیک 1 احتمالا واسه تجربی(تست).pdf",
+      "question": "مبدأ مکان چیست؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_049",
+      "source_file": "فیزیک 1 احتمالا واسه تجربی(تست).pdf",
+      "question": "آیا مبدأ مکان الزاماً نقطهٔ شروع حرکت است؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_050",
+      "source_file": "فیزیک 1 احتمالا واسه تجربی(تست).pdf",
+      "question": "تفاوت مکانیک کلاسیک و مکانیک کوانتومی در توصیف اندازهٔ اجسام چیست؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_051",
+      "source_file": "فیزیک 1 احتمالا واسه تجربی(تست).pdf",
+      "question": "مکانیک نسبیتی در جزوه برای چه اجسامی و چه سرعت‌هایی مطرح شده است؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_052",
+      "source_file": "فیزیک 1 احتمالا واسه تجربی(تست).pdf",
+      "question": "اگر جسم به نقطهٔ آغاز بازگردد، آیا جابه‌جایی آن الزاماً برابر طول مسیر است؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_053",
+      "source_file": "فیزیک 1 احتمالا واسه تجربی(تست).pdf",
+      "question": "دینامیک در این جزوه با کدام قانون‌ها پیوند داده شده است؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_054",
+      "source_file": "فیزیک 1 احتمالا واسه تجربی(تست).pdf",
+      "question": "طبق همین جزوه، نام نویسندهٔ اصلی کتاب درسی رسمی چیست؟",
+      "answerable_expected": false
+    },
+    {
+      "qa_id": "qa_055",
+      "source_file": "زبان 1.pdf",
+      "question": "در فهرست واژگان درس اول، معنی فارسی babysitter چیست؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_056",
+      "source_file": "زبان 1.pdf",
+      "question": "معنی فارسی accidental در فهرست واژگان چیست؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_057",
+      "source_file": "زبان 1.pdf",
+      "question": "معنی فارسی abroad چیست؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_058",
+      "source_file": "زبان 1.pdf",
+      "question": "معنی فارسی active voice چیست؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_059",
+      "source_file": "زبان 1.pdf",
+      "question": "معنی فارسی appreciation در این فهرست چیست؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_060",
+      "source_file": "زبان 1.pdf",
+      "question": "معنی فارسی advise چیست؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_061",
+      "source_file": "زبان 1.pdf",
+      "question": "معنی فارسی advisor چیست؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_062",
+      "source_file": "زبان 1.pdf",
+      "question": "معنی فارسی care for چیست؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_063",
+      "source_file": "زبان 1.pdf",
+      "question": "معنی فارسی childhood چیست؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_064",
+      "source_file": "زبان 1.pdf",
+      "question": "معنی فارسی blessing در فهرست واژگان چیست؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_065",
+      "source_file": "sample_persian.pdf",
+      "question": "در شرح ابیات آغازین، گوینده چرا خدا را ستایش می‌کند؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_066",
+      "source_file": "sample_persian.pdf",
+      "question": "در شرح متن، شکرگزاری چه اثری دارد؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_067",
+      "source_file": "sample_persian.pdf",
+      "question": "در متن صفحهٔ دوم، چرا توصیف کامل خداوند برای انسان ممکن دانسته نشده است؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_068",
+      "source_file": "sample_persian.pdf",
+      "question": "در شرح متن، چه ویژگی‌هایی برای خداوند برشمرده شده است؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_069",
+      "source_file": "sample_persian.pdf",
+      "question": "عبارت «طاعتش موجب قربت است» در شرح فارسی چه معنایی دارد؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_070",
+      "source_file": "sample_persian.pdf",
+      "question": "در شرح ابیات، تلاش برای فضل و بخشش خداوند چگونه توصیف شده است؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_071",
+      "source_file": "sample_persian.pdf",
+      "question": "طبق شرح متن، چه چیزهایی سراسر وجود خداوند توصیف شده‌اند؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_072",
+      "source_file": "sample_persian.pdf",
+      "question": "در شرح عبارت مربوط به پوشاندن عیب‌ها، چه معنایی بیان می‌شود؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_073",
+      "source_file": "sample_persian.pdf",
+      "question": "در این جزوه، تاریخ دقیق سرایش همهٔ ابیات آغازین چه سالی ذکر شده است؟",
+      "answerable_expected": false
+    },
+    {
+      "qa_id": "qa_074",
+      "source_file": "sample_persian.pdf",
+      "question": "چه رابطه‌ای میان اطاعت و شکرگزاری در شرح نثر سعدی بیان شده است؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_075",
+      "source_file": "1023.pdf",
+      "question": "چکیدهٔ مقاله فضای سایبر را چگونه توصیف می‌کند؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_076",
+      "source_file": "1023.pdf",
+      "question": "چکیدهٔ مقاله چه پیامدهایی را برای طراحی‌های اعتیادآور در فضای سایبر برمی‌شمارد؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_077",
+      "source_file": "1023.pdf",
+      "question": "در چکیده، مادر در برابر هجوم داده‌پایه چه نقشی می‌تواند داشته باشد؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_078",
+      "source_file": "1023.pdf",
+      "question": "«اقتصاد توجه» در مقدمه چه چیزی را منبع کمیاب و ارزشمند می‌داند؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_079",
+      "source_file": "1023.pdf",
+      "question": "طبق مقدمه، چرا فضای سایبر صرفاً مجموعه‌ای از ابزارهای خنثی نیست؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_080",
+      "source_file": "1023.pdf",
+      "question": "طبق بخش پیشینه، هربرت سایمون در اقتصاد اطلاعات چه منبعی را کمیاب‌تر از خود اطلاعات می‌داند؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_081",
+      "source_file": "1023.pdf",
+      "question": "شوشانا زوبوف طبق متن دربارهٔ شرکت‌های فناوری و «مازاد رفتاری» چه می‌گوید؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_082",
+      "source_file": "1023.pdf",
+      "question": "فناوری متقاعدکننده در متن با نام کدام پژوهشگر پیوند داده شده است؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_083",
+      "source_file": "1023.pdf",
+      "question": "طبق متن، نیکلاس کار دربارهٔ اثر اینترنت بر چه توانایی‌هایی هشدار می‌دهد؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_084",
+      "source_file": "1023.pdf",
+      "question": "مقاله چه آزمایش تصادفی کنترل‌شده‌ای را با تعداد دقیق شرکت‌کنندگان گزارش می‌کند؟",
+      "answerable_expected": false
+    },
+    {
+      "qa_id": "qa_085",
+      "source_file": "جزوه شیمی ترکیبات آلی.pdf",
+      "question": "متان نخستین عضو کدام خانوادهٔ ترکیبات معرفی شده است؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_086",
+      "source_file": "جزوه شیمی ترکیبات آلی.pdf",
+      "question": "گاز شهری طبق جزوه عمدتاً از چه ترکیبی تشکیل شده است؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_087",
+      "source_file": "جزوه شیمی ترکیبات آلی.pdf",
+      "question": "پروپان چندمین عضو خانوادهٔ آلکان‌ها معرفی شده است؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_088",
+      "source_file": "جزوه شیمی ترکیبات آلی.pdf",
+      "question": "متانال نخستین عضو کدام خانواده معرفی شده است؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_089",
+      "source_file": "جزوه شیمی ترکیبات آلی.pdf",
+      "question": "دو کاربرد یا ویژگی اتانول که در جزوه آمده چیست؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_090",
+      "source_file": "جزوه شیمی ترکیبات آلی.pdf",
+      "question": "مخلوط آب و اتیلن گلیکول برای چه کاری مصرف می‌شود؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_091",
+      "source_file": "جزوه شیمی ترکیبات آلی.pdf",
+      "question": "محلول ۵ درصد جرمی استیک اسید در آب چه نام یا کاربردی دارد؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_092",
+      "source_file": "جزوه شیمی ترکیبات آلی.pdf",
+      "question": "چرا شکر طبق جزوه در آب محلول است؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_093",
+      "source_file": "جزوه شیمی ترکیبات آلی.pdf",
+      "question": "استون نخستین عضو کدام خانواده است و چه نوع ترکیبی معرفی شده است؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_094",
+      "source_file": "جزوه شیمی ترکیبات آلی.pdf",
+      "question": "هگزان در جزوه چه کاربردی دارد؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_095",
+      "source_file": "دیفرانسیل ۴_removed_removed.pdf",
+      "question": "طبق مقدمهٔ جزوه، چرا در حل مسائل ریاضی از تبدیل‌ها استفاده می‌شود؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_096",
+      "source_file": "دیفرانسیل ۴_removed_removed.pdf",
+      "question": "جزوه تبدیل لاپلاس را برای حل چه نوع معادلاتی پیشنهاد می‌کند؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_097",
+      "source_file": "دیفرانسیل ۴_removed_removed.pdf",
+      "question": "تعریف انتگرالی تبدیل لاپلاس که در جزوه آمده چیست؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_098",
+      "source_file": "دیفرانسیل ۴_removed_removed.pdf",
+      "question": "در نمادگذاری صفحهٔ دوم، تبدیل لاپلاس تابع f(x) با چه نمادی نشان داده می‌شود؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_099",
+      "source_file": "دیفرانسیل ۴_removed_removed.pdf",
+      "question": "ایدهٔ کلی حل با تبدیل لاپلاس که در جزوه توضیح داده شده چیست؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_100",
+      "source_file": "دیفرانسیل ۴_removed_removed.pdf",
+      "question": "در جزوه، چند مثال حل‌شده از معادلات دیفرانسیل مرتبهٔ سوم با جواب نهایی آمده است؟",
+      "answerable_expected": false
+    },
+    {
+      "qa_id": "qa_101",
+      "source_file": "paper1047.pdf",
+      "question": "چکیدهٔ مقاله، سایبرنتیک را چگونه تعریف می‌کند؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_102",
+      "source_file": "paper1047.pdf",
+      "question": "طبق چکیده، فراسیستم سازمان ملل چگونه نوعی کنترل سایبرنتیکی را اعمال می‌کند؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_103",
+      "source_file": "paper1047.pdf",
+      "question": "مهم‌ترین شاخصهٔ کنترلی سازمان ملل طبق چکیده چیست؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_104",
+      "source_file": "paper1047.pdf",
+      "question": "مثال موشک خودهدایت‌شونده در مقاله چه مفهومی از بازخورد را توضیح می‌دهد؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_105",
+      "source_file": "paper1047.pdf",
+      "question": "چرا مثال موشک برای توضیح سایبرنتیک در جوامع انسانی آورده شده است؟",
+      "answerable_expected": true
+    },
+    {
+      "qa_id": "qa_106",
+      "source_file": "والیبال.pdf",
+      "question": "نام و شمارهٔ تماس داور اصلی آخرین مسابقهٔ تیم ملی در این سند چیست؟",
+      "answerable_expected": false
+    },
+    {
+      "qa_id": "qa_107",
+      "source_file": "کار با کودک.pdf",
+      "question": "نام کامل تمام کودکانی که در فعالیت‌ها شرکت کرده‌اند چیست؟",
+      "answerable_expected": false
+    },
+    {
+      "qa_id": "qa_108",
+      "source_file": "القای الکترومغناطیس.pdf",
+      "question": "مقدار عددی میدان مغناطیسی در آزمایش ثبت‌شده چند تسلا است؟",
+      "answerable_expected": false
+    },
+    {
+      "qa_id": "qa_109",
+      "source_file": "جمع بندی آیات دینی.pdf",
+      "question": "چه تاریخ دقیقی برای برگزاری آزمون این درس اعلام شده است؟",
+      "answerable_expected": false
+    },
+    {
+      "qa_id": "qa_110",
+      "source_file": "زبان 1.pdf",
+      "question": "شماره تلفن نویسندهٔ کتاب درسی در این صفحه چیست؟",
+      "answerable_expected": false
+    },
+    {
+      "qa_id": "qa_111",
+      "source_file": "sample_persian.pdf",
+      "question": "چه تعداد دانش‌آموز در کلاسِ گوینده حضور داشته‌اند؟",
+      "answerable_expected": false
+    },
+    {
+      "qa_id": "qa_112",
+      "source_file": "1023.pdf",
+      "question": "نام نرم‌افزار آماری استفاده‌شده برای تحلیل داده‌های میدانی و نسخهٔ آن چیست؟",
+      "answerable_expected": false
+    },
+    {
+      "qa_id": "qa_113",
+      "source_file": "جزوه شیمی ترکیبات آلی.pdf",
+      "question": "قیمت روز متان در بازار ایران طبق این جزوه چقدر است؟",
+      "answerable_expected": false
+    },
+    {
+      "qa_id": "qa_114",
+      "source_file": "دیفرانسیل ۴_removed_removed.pdf",
+      "question": "زمان دقیق برگزاری امتحان درس در جزوه چه روز و ساعتی است؟",
+      "answerable_expected": false
+    },
+    {
+      "qa_id": "qa_115",
+      "source_file": "فیزیک 1 احتمالا واسه تجربی(تست).pdf",
+      "question": "در آزمایش این جزوه، دمای اتاق با دقت صدم درجه چند ثبت شده است؟",
+      "answerable_expected": false
+    }
+  ]
+}

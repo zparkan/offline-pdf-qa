@@ -119,7 +119,7 @@ class AnswerGenerator:
         self.n_ctx = n_ctx if n_ctx is not None else getattr(config, "LLM_CONTEXT_WINDOW", 4096)
         self.n_gpu_layers = n_gpu_layers if n_gpu_layers is not None else getattr(config, "LLM_GPU_LAYERS", -1 if getattr(config, "IS_COLAB", False) else 0)
         self.mock_mode = mock_mode
-        self.auto_download = auto_download
+        self.auto_download = auto_download or getattr(config, "AUTO_DOWNLOAD_LLM", False)
 
         self.llm = None
         self.is_loaded = False
@@ -148,6 +148,13 @@ class AnswerGenerator:
         repo_id = model_info.get("repo")
         llm_dir = getattr(config, "LLM_DIR", Path("models/llm"))
         model_path = llm_dir / filename
+
+        # اگر فایل با نام دقیق موجود نبود، هر فایل GGUF معتبر در پوشه را شناسایی کن
+        if not model_path.exists():
+            existing_ggufs = [f for f in llm_dir.glob("*.gguf") if f.stat().st_size > 1024 * 1024]
+            if existing_ggufs:
+                model_path = existing_ggufs[0]
+                print(f"[AnswerGenerator] ℹ️ فایل مدل زبانی در دیسک شناسایی شد: {model_path.name}")
 
         if not model_path.exists():
             if self.auto_download:
@@ -183,6 +190,13 @@ class AnswerGenerator:
                     verbose=False
                 )
             except Exception as gpu_err:
+                force_gpu = getattr(config, "FORCE_GPU", False) or os.environ.get("FORCE_GPU") == "1"
+                if force_gpu:
+                    raise RuntimeError(
+                        f"[AnswerGenerator] ❌ خطای بحرانی سخت‌افزار: مدل زبانی باید منحصراً روی GPU اجرا شود، "
+                        f"اما انتقال لایه‌ها به کارت گرافیک با شکست مواجه شد ({gpu_err}). "
+                        f"لطفاً اطمینان حاصل کنید که پکیج llama-cpp-python با پشتیبانی CUDA نصب شده است."
+                    )
                 if self.n_gpu_layers != 0:
                     print(f"[AnswerGenerator] ⚠️ بارگذاری با لایه‌های گرافیکی ناموفق بود ({gpu_err}). تلاش برای اجرای مجدد روی CPU...")
                     self.llm = Llama(
