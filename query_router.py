@@ -39,9 +39,11 @@ except ImportError:
 
 
 class QueryIntent(str, Enum):
+    CHITCHAT = "chitchat"
     FACTUAL_POINT = "factual_point"
     SUMMARIZATION = "summarization"
     COMPARISON = "comparison"
+    ENUMERATION = "enumeration"
     AGGREGATION_COUNT = "aggregation_count"
 
 
@@ -53,6 +55,23 @@ class QueryAnalysisResult:
     target_filenames: List[str] = field(default_factory=list)
     is_global: bool = False  # آیا پرسش مربوط به کل اسناد است؟
 
+
+# الگوهای رجکس سریع برای تشخیص احوال‌پرسی و چت عمومی
+_GREETING_WORDS = r"(?:سلام(?: علیکم)?|درود|صبح\s*بخیر|عصر\s*بخیر|شب\s*بخیر|روز\s*بخیر|وقت(?:تون)?\s*بخیر|خسته\s*نباشید|خسته\s*نباشی|خوبی|چطوری|خوبید|احوال\s*شما|ممنون|تشکر|مرسی)"
+_CHITCHAT_PATTERNS = [
+    re.compile(rf"^(?:{_GREETING_WORDS}[\s،,]*)+[!؟?.\s]*$", re.IGNORECASE),
+    re.compile(r"^(?:تو\s*کی\s*هستی|خودتو\s*معرفی\s*کن|چه\s*کمکی\s*(?:میتونی|می‌تونی)\s*بکنی|کیستی)[!؟?.\s]*$", re.IGNORECASE),
+    re.compile(r"^(?:سلام\s*و\s*درود|سلام\s*عزیزم|سلام\s*ربات|سلام\s*دستیار)[!؟?.\s]*$", re.IGNORECASE),
+]
+
+# الگوهای رجکس برای تشخیص پرسش‌های فرآیندی، مراحلی و شمارشی
+_ENUMERATION_PATTERNS = [
+    re.compile(r"چند\s*(?:تا\s*)?(?:گام|مرحله|فاز|بخش|بند|اصل|فصل|مورد|شاخص|ویژگی|قسمت|رکن|شرط)", re.IGNORECASE),
+    re.compile(r"تعداد\s*(?:گام|مرحله|مراحل|فاز|فازها|بخش|بخش‌ها|بند|بندها|اصل|اصول|فصل|فصول|مورد|موارد|شرایط)", re.IGNORECASE),
+    re.compile(r"(?:فهرست|لیست|نام\s*ببر|ذکر\s*کن|بگو)\s*(?:تمام|همه|کلیه)?\s*(?:گام|گام‌ها|مرحله|مراحل|فاز|فازها|بخش|بخش‌ها|بند|بندها)", re.IGNORECASE),
+    re.compile(r"چه\s*(?:مراحلی|گام‌هایی|گامهایی|فازهایی|مواردی|بخش‌هایی)", re.IGNORECASE),
+    re.compile(r"(?:مراحل|گام‌های|گامهای|فازهای)\s*(?:پروژه|اجرا|انجام|سند|کار|فرایند|فرآیند)", re.IGNORECASE),
+]
 
 # الگوهای رجکس برای تشخیص قصد پرسش
 _COUNT_PATTERNS = [
@@ -167,46 +186,73 @@ def analyze_query(
     available_files: Optional[List[Dict[str, Any]]] = None
 ) -> QueryAnalysisResult:
     """
-    تحلیل جامع متن سوال کاربر و تعیین استراتژی بهینه برای پاسخگویی.
+    تحلیل جامع و فوق‌سریع متن سوال کاربر و تعیین استراتژی بهینه برای پاسخگویی (زیر ۲ میلی‌ثانیه).
     """
     norm_query = query.strip()
     is_global = any(p.search(norm_query) for p in _GLOBAL_DOC_PATTERNS)
+    doc_indices = extract_target_doc_indices(norm_query)
 
-    # ۱. اولویت اول: بررسی پرسش‌های شمارشی و تجمعی (تعداد دفعات / چند بار تکرار)
+    target_filenames = []
+    if available_files and doc_indices:
+        for idx in doc_indices:
+            if 1 <= idx <= len(available_files):
+                target_filenames.append(available_files[idx - 1].get("filename", ""))
+
+    # ۰. بررسی احوال‌پرسی و تعاملات عمومی (Chitchat)
+    for p in _CHITCHAT_PATTERNS:
+        if p.search(norm_query):
+            return QueryAnalysisResult(
+                intent=QueryIntent.CHITCHAT,
+                is_global=True
+            )
+
+    # ۱. بررسی پرسش‌های شمارشی و تجمعی (تعداد دفعات / چند بار تکرار یک واژه خاص)
     for p in _COUNT_PATTERNS:
         if p.search(norm_query):
             kw = extract_count_keyword(norm_query)
-            doc_indices = extract_target_doc_indices(norm_query)
             return QueryAnalysisResult(
                 intent=QueryIntent.AGGREGATION_COUNT,
                 target_keyword=kw,
                 target_doc_indices=doc_indices,
+                target_filenames=target_filenames,
                 is_global=is_global or (len(doc_indices) == 0)
             )
 
-    # ۲. اولویت دوم: بررسی پرسش‌های مقایسه‌ای
+    # ۲. بررسی پرسش‌های فرآیندی، مراحلی و شمارش ساختاری (چند گام، چند مرحله، چند فاز)
+    for p in _ENUMERATION_PATTERNS:
+        if p.search(norm_query):
+            return QueryAnalysisResult(
+                intent=QueryIntent.ENUMERATION,
+                target_doc_indices=doc_indices,
+                target_filenames=target_filenames,
+                is_global=is_global or (len(doc_indices) == 0)
+            )
+
+    # ۳. بررسی پرسش‌های مقایسه‌ای
     for p in _COMPARE_PATTERNS:
         if p.search(norm_query):
-            doc_indices = extract_target_doc_indices(norm_query)
             return QueryAnalysisResult(
                 intent=QueryIntent.COMPARISON,
                 target_doc_indices=doc_indices,
+                target_filenames=target_filenames,
                 is_global=is_global or (len(doc_indices) == 0)
             )
 
-    # ۳. اولویت سوم: بررسی پرسش‌های خلاصه‌سازی
+    # ۴. بررسی پرسش‌های خلاصه‌سازی
     for p in _SUMMARIZE_PATTERNS:
         if p.search(norm_query):
-            doc_indices = extract_target_doc_indices(norm_query)
             return QueryAnalysisResult(
                 intent=QueryIntent.SUMMARIZATION,
                 target_doc_indices=doc_indices,
+                target_filenames=target_filenames,
                 is_global=is_global or (len(doc_indices) == 0)
             )
 
-    # ۴. پیش‌فرض: سوالات فکتوال و نقطه‌ای عادی
+    # ۵. پیش‌فرض: سوالات فکتوال و نقطه‌ای عادی
     return QueryAnalysisResult(
         intent=QueryIntent.FACTUAL_POINT,
+        target_doc_indices=doc_indices,
+        target_filenames=target_filenames,
         is_global=False
     )
 

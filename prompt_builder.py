@@ -30,12 +30,14 @@ if hasattr(sys.stdout, "reconfigure"):
 # دستورالعمل سیستمی پیش‌فرض برای مهار توهم و هدایت دقیق مدل زبانی
 DEFAULT_SYSTEM_INSTRUCTION = """تو یک دستیار هوشمند، متعهد و امانت‌دار برای پاسخ‌گویی به سوالات بر اساس اسناد شخصی کاربر هستی.
 
-وظیفه تو این است که فقط و فقط بر اساس «زمینه‌ها و اسناد مرجع» ارائه‌شده در پیام کاربر پاسخ دهی.
+وظیفه تو این است که فقط و فقط بر اساس متون ارائه‌شده در بخش <documents> پاسخ دهی.
 حتماً قوانین زیر را بدون استثنا رعایت کن:
-۱. فقط از حقایق و اطلاعات موجود در متون ارائه‌شده استفاده کن. استنتاج منطقی و تلخیص از محتوای اسناد مجاز و مطلوب است، اما هرگز از دانسته‌های بیرونی چیزی را حدس نزن یا اطلاعات ساختگی اضافه نکن.
-۲. تنها در صورتی که موضوع و پاسخ سوال کلاً در اسناد ارائه‌شده پوشش داده نشده باشد، صراحتاً بگو: «پاسخی برای این پرسش در اسناد بارگذاری‌شده شما یافت نشد.»
-۳. در انتهای هر ادعا یا پاسخ، حتماً نام سند و شماره صفحه منبع را ذکر کن (مثال: [سند: قرارداد.pdf، صفحه: ۳]).
-۴. پاسخ باید خلاصه، مستند، منسجم، روان و کاملاً به زبان فارسی باشد."""
+۱. فقط از حقایق و اطلاعات صریح موجود در اسناد ارائه‌شده استفاده کن. هرگز از دانسته‌های بیرونی چیزی را حدس نزن یا اطلاعات ساختگی اضافه نکن (ضد توهم).
+۲. اگر موضوع و پاسخ پرسش در اسناد ارائه‌شده نیامده باشد، صراحتاً و فقط بگو: «پاسخی برای این پرسش در اسناد بارگذاری‌شده شما یافت نشد.»
+۳. اگر زمینه‌ها شامل چند سند مختلف هستند، هرگز اطلاعات آن‌ها را با هم یکی نکن. صراحتاً تفکیک کن که هر سند چه می‌گوید (مثال: طبق سند الف... در حالی که در سند ب...).
+۴. در سوالات شمارشی یا مراحلی: اگر سند صراحتاً تعداد کل را ذکر کرده همان را بگو، و تمام گام‌ها یا موارد موجود در متن را به ترتیب شماره‌گذاری و ذکر کن.
+۵. در انتهای هر پاسخ، حتماً نام سند و شماره صفحه منبع را بنویس (مثال: [سند: قرارداد.pdf، صفحه: ۳]).
+۶. پاسخ باید منسجم، روان، مستند و کاملاً به زبان فارسی باشد."""
 
 # پیام استاندارد در صورت عدم وجود کانتکست یا فیلتر شدن به خاطر شباهت پایین
 FALLBACK_NO_CONTEXT_MESSAGE = "پاسخی برای این پرسش در اسناد بارگذاری‌شده شما یافت نشد."
@@ -49,7 +51,7 @@ class PromptBuilder:
     def __init__( 
         self,
         system_instruction: Optional[str] = None,
-        max_history_turns: int = 3,
+        max_history_turns: int = 2,
         fallback_message: str = FALLBACK_NO_CONTEXT_MESSAGE
     ):
         """
@@ -69,12 +71,8 @@ class PromptBuilder:
         chunks_input: Union[Dict[str, Any], List[Dict[str, Any]], List[DocumentChunk]]
     ) -> str:
         """
-        تبدیل چانک‌های دریافتی به یک متن ساخت‌یافته همراه با شناسنامه منبع و شماره صفحه.
-
-        ورودی می‌تواند:
-          ۱. دیکشنری مستقیم خروجی retriever.retrieve()
-          ۲. لیستی از دیکشنری‌های چانک
-          ۳. لیستی از اشیای کلاس DocumentChunk
+        تبدیل چانک‌های دریافتی به ساختار استاندارد XML با تگ‌های <documents> و <document>
+        برای تفکیک قطعی مرز اسناد و جلوگیری از قاطی شدن محتوای فایل‌های مختلف.
         """
         # ۱. استخراج لیست چانک‌ها بر اساس نوع ورودی
         chunks_list: List[Any] = []
@@ -92,14 +90,12 @@ class PromptBuilder:
 
         formatted_blocks = []
         for index, item in enumerate(chunks_list, start=1):
-            # استخراج فیلدها با انعطاف بالا (چه شیء DocumentChunk چه دیکشنری)
             if isinstance(item, DocumentChunk):
                 text = item.text
                 doc_id = item.doc_id
                 page_number = item.page_number
             elif isinstance(item, dict):
                 text = item.get("text", "")
-                # جستجو برای doc_id در سطح اصلی یا داخل metadata
                 doc_id = item.get("doc_id") or item.get("metadata", {}).get("doc_id", "نامشخص")
                 page_number = item.get("page_number") or item.get("metadata", {}).get("page_number", 0)
             else:
@@ -107,7 +103,6 @@ class PromptBuilder:
                 doc_id = "نامشخص"
                 page_number = 0
 
-            # پاکسازی خطوط خالی اضافی در متن چانک
             cleaned_text = text.strip()
 
             doc_name = (
@@ -115,12 +110,11 @@ class PromptBuilder:
                 or (item.get("filename") or item.get("metadata", {}).get("filename") if isinstance(item, dict) else None)
                 or doc_id
             )
-            header = f"[سند: {doc_name} | شماره صفحه: {page_number}]"
-            block = f"{header}\n{cleaned_text}"
+            block = f'  <document id="{index}" file="{doc_name}" page="{page_number}">\n    {cleaned_text}\n  </document>'
             formatted_blocks.append(block)
 
-        # اتصال بلوک‌ها با خط جداکننده شفاف
-        return "\n\n---\n\n".join(formatted_blocks)
+        inner_docs = "\n\n".join(formatted_blocks)
+        return f"<documents>\n{inner_docs}\n</documents>"
 
     def format_history(
         self,
@@ -150,21 +144,31 @@ class PromptBuilder:
             return valid_messages[-max_messages:]
         return valid_messages
 
-    def build_user_message(self, query: str, formatted_context: str) -> str:
+    def build_user_message(
+        self,
+        query: str,
+        formatted_context: str,
+        reply_context: Optional[str] = None
+    ) -> str:
         """
-        ترکیب پرسش کاربر و اسناد در قالب یک پیام ورودی منسجم و هدایت‌شده.
+        ترکیب پرسش کاربر، اسناد مرجع و متن ریپلای‌شده (در صورت وجود) در قالب پیام نهایی.
         """
         clean_query = query.strip()
+        reply_block = ""
+        if reply_context and reply_context.strip():
+            snippet = reply_context.strip()
+            if len(snippet) > 200:
+                snippet = snippet[:200] + "..."
+            reply_block = f'  <replied_message>\n    {snippet}\n  </replied_message>\n\n'
 
         if not formatted_context.strip():
-            # در حالتی که هیچ زمینه‌ای پیدا نشده است
-            return f"پرسش کاربر:\n{clean_query}"
+            return f"{reply_block}پرسش کاربر:\n{clean_query}"
 
         return (
-            "بر اساس «زمینه‌ها و اسناد مرجع» زیر، به پرسش مطرح‌شده با ذکر دقیق شماره صفحه پاسخ بده.\n\n"
-            "### زمینه‌ها و اسناد مرجع:\n"
+            f"{reply_block}"
+            "بر اساس اسناد ارائه‌شده در زیر، به پرسش مطرح‌شده با ذکر دقیق نام سند و شماره صفحه پاسخ بده.\n\n"
             f"{formatted_context}\n\n"
-            "### پرسش کاربر:\n"
+            f"### پرسش کاربر:\n"
             f"{clean_query}"
         )
 
@@ -172,7 +176,8 @@ class PromptBuilder:
         self,
         query: str,
         retriever_result_or_chunks: Union[Dict[str, Any], List[Dict[str, Any]], List[DocumentChunk]],
-        chat_history: Optional[List[Dict[str, str]]] = None
+        chat_history: Optional[List[Dict[str, str]]] = None,
+        reply_context: Optional[str] = None
     ) -> List[Dict[str, str]]:
         """
         تولید لیست کامل پیام‌های استاندارد (System / History / User) سازگار با llama-cpp-python.
@@ -181,21 +186,23 @@ class PromptBuilder:
             query: سوال جدید کاربر.
             retriever_result_or_chunks: خروجی ماژول بازیاب یا لیستی از چانک‌ها.
             chat_history: تاریخچه پیام‌های قبلی چت.
+            reply_context: متن پیام قبلی که کاربر مستقیماً روی آن ریپلای کرده است.
         """
-        # ۱. پیام سیستمی ضد توهم
+        # ۱. پیام سیستمی ضد توهم و هدایتگر
         messages: List[Dict[str, str]] = [
             {"role": "system", "content": self.system_instruction}
         ]
 
-        # ۲. افزودن تاریخچه کوتاه گفتگو (در صورت وجود)
-        if chat_history:
+        # ۲. افزودن تاریخچه: اگر ریپلای مستقیم داشتیم، خود ریپلای کافیست؛
+        # در غیر این صورت حداکثر ۱ تا ۲ تبادل کوتاه اضافه می‌شود
+        if not reply_context and chat_history:
             messages.extend(self.format_history(chat_history))
 
-        # ۳. ساخت متن زمینه از چانک‌ها
+        # ۳. ساخت متن زمینه از چانک‌ها با تگ‌های ساختاریافته XML
         context_text = self.format_context(retriever_result_or_chunks)
 
-        # ۴. افزودن پیام جدید کاربر حاوی کانتکست و پرسش
-        user_content = self.build_user_message(query, context_text)
+        # ۴. افزودن پیام جدید کاربر حاوی کانتکست، ریپلای و پرسش
+        user_content = self.build_user_message(query, context_text, reply_context=reply_context)
         messages.append({"role": "user", "content": user_content})
 
         return messages
@@ -344,15 +351,35 @@ class PromptBuilder:
         self,
         current_query: str,
         chat_history: Optional[List[Dict[str, str]]] = None,
-        llm: Optional[Any] = None
+        llm: Optional[Any] = None,
+        reply_context: Optional[str] = None
     ) -> str:
         """
-        بازنویسی هوشمند سوال برای بازیابی در مکالمات چندمرحله‌ای (Conversational Query Reformulation).
-        اگر سوال کاربر ارجاعی به پیام‌های قبلی باشد (مانند: «گام‌ها رو بگو»، «بیشتر بگو»، «مورد دوم چیه»)،
-        سوال را با موضوع و کلمات کلیدی پیام‌های پیشین غنی و مستقل می‌کند تا ریتریور چانک‌های دقیق را پیدا کند.
+        بازنویسی هوشمند سوال برای بازیابی در مکالمات چندمرحله‌ای.
+        فقط در صورت وجود ریپلای مستقیم یا ضمایر ارجاعی صریح (مثل «این»، «دومی»، «قبلی»)،
+        سوال با زمینه غنی می‌شود تا از آلودگی موضوعی سوالات کوتاه جلوگیری شود.
         """
         clean_query = current_query.strip()
+
+        # اگر کاربر مستقیماً روی پیامی ریپلای کرده باشد، کلیدواژه‌های ریپلای بالاترین اولویت را دارند
+        if reply_context and reply_context.strip():
+            rep_snippet = reply_context.strip()[:100]
+            # اگر سوال کوتاه یا دارای ضمیر باشد، زمینه ریپلای اضافه می‌شود
+            return f"{clean_query} {rep_snippet}"
+
         if not chat_history:
+            return clean_query
+
+        # کلمات کلیدی نشان‌دهنده ارجاع و وابستگی به پیام قبلی
+        referential_indicators = [
+            "این", "آن", "اینها", "آنها", "همان", "قبلی", "دومی", "سومی", "مورد دوم",
+            "بیشتر بگو", "بیشتر توضیح بده", "چرا اینطور", "ادامه بده"
+        ]
+
+        has_referential_word = any(ind in clean_query for ind in referential_indicators)
+
+        # اگر سوال ضمیر ارجاعی ندارد، کاملاً مستقل تلقی می‌شود و دستکاری نمی‌شود (حل مشکل گیر کردن در موضوع قبل)
+        if not has_referential_word:
             return clean_query
 
         # آخرین پیام‌های کاربر در تاریخچه
@@ -362,21 +389,7 @@ class PromptBuilder:
 
         last_user_query = last_user_msgs[-1].strip()
 
-        # کلمات کلیدی نشان‌دهنده ارجاع و وابستگی به پیام قبلی
-        referential_indicators = [
-            "گام", "گام‌ها", "گامها", "مرحله", "مراحل", "بند", "ماده", "مورد", "موارد",
-            "بیشتر", "توضیح", "کدام", "کدوم", "چرا", "این", "آن", "اینها", "آنها",
-            "همان", "قبلی", "صفحه", "جزییات", "جزئیات", "چند", "چقدر", "لیست"
-        ]
-
-        words = clean_query.split()
-        is_short = len(words) <= 7
-        has_referential_word = any(ind in clean_query for ind in referential_indicators)
-
-        if not (is_short or has_referential_word):
-            return clean_query
-
-        # در صورت در دسترس بودن مدل زبانی واقعی، بازنویسی سریع با LLM انجام می‌شود
+        # در صورت در دسترس بودن مدل زبانی واقعی، بازنویسی دقیق با LLM انجام می‌شود
         if llm is not None:
             try:
                 system_prompt = (
@@ -395,7 +408,7 @@ class PromptBuilder:
                 ]
                 resp = llm.create_chat_completion(
                     messages=rewrite_messages,
-                    max_tokens=64,
+                    max_tokens=48,
                     temperature=0.0
                 )
                 choices = resp.get("choices", [])
@@ -407,10 +420,10 @@ class PromptBuilder:
             except Exception:
                 pass
 
-        # روش غنی‌سازی واژگانی هوشمند (Fast Heuristic Context Enrichment)
+        # غنی‌سازی آرام کلمات کلیدی فقط در صورت وجود ضمیر ارجاعی
         stopwords_query = {"چیست", "چیه", "کجاست", "کیست", "چگونه", "چطور", "چند", "آیا", "لطفا", "توضیح", "بده", "بگو", "رو", "را"}
         topic_words = [w for w in last_user_query.split() if w not in stopwords_query]
-        topic_context = " ".join(topic_words[:6])
+        topic_context = " ".join(topic_words[:3])
 
         if topic_context and topic_context not in clean_query:
             return f"{clean_query} {topic_context}"

@@ -261,10 +261,10 @@ class AnswerGenerator:
             "منبعی برای پاسخ",
             "نمی‌توان پاسخی یافت",
             "نمیتوان پاسخی یافت",
+            "مطلبی یافت نشد",
         ]
-        text_clean = text.strip()
-        has_phrase = any(phrase in text_clean for phrase in negative_phrases)
-        return has_phrase and len(text_clean) < 350
+        text_clean = text.strip().replace("ي", "ی").replace("ك", "ک")
+        return any(phrase in text_clean for phrase in negative_phrases)
 
     def _filter_citations(
         self,
@@ -275,7 +275,8 @@ class AnswerGenerator:
         پالایش هوشمند مراجع برای جلوگیری از ارسال مراجع اضافی و نامربوط:
         ۱. در صورت اعلام عدم وجود پاسخ، هیچ مرجعی برنمی‌گرداند.
         ۲. مراجعی که شماره صفحه یا نام سندشان مستقیماً در پاسخ مدل ذکر شده حفظ می‌شوند.
-        ۳. در صورت عدم ذکر مستقیم شماره صفحه، فقط مراجع با کیفیت بالا (حداکثر ۲ منبع اول) حفظ می‌شوند.
+        ۳. در صورت عدم ذکر مستقیم شماره صفحه، فقط مراجع با کیفیت بسیار بالا (حداکثر ۲ منبع اول با نمره بالا) حفظ می‌شوند.
+        ۴. هرگز منبع پیش‌فرض یا ساختگی به پاسخ منفی یا بی‌ارتباط اضافه نمی‌شود.
         """
         if not citations:
             return []
@@ -307,12 +308,13 @@ class AnswerGenerator:
                 return strictly_cited
 
         # ۳. در صورتی که مدل به شماره صفحه اشاره نکرده باشد:
-        # فیلتر کردن چانک‌های دارای نمره شباهت پایین (حداکثر ۲ منبع برتر با نمره مناسب)
-        high_scored = [c for c in citations if (c.get("score") or 0.0) >= 0.55]
+        # فیلتر کردن چانک‌های دارای نمره شباهت بالا (حداقل 0.65)
+        high_scored = [c for c in citations if (c.get("score") or 0.0) >= 0.65]
         if high_scored:
             return high_scored[:2]
 
-        return citations[:1]
+        # در صورت نبود استناد قطعی، منبع خالی برگردانده می‌شود (تضمین عدم ارسال منبع غلط)
+        return []
 
     def generate_stream(
         self,
@@ -320,7 +322,8 @@ class AnswerGenerator:
         chat_id: Union[int, str],
         filter_doc_ids: Optional[List[str]] = None,
         chat_history: Optional[List[Dict[str, str]]] = None,
-        retrieval_query: Optional[str] = None
+        retrieval_query: Optional[str] = None,
+        reply_context: Optional[str] = None
     ) -> Generator[Dict[str, Any], None, None]:
         """
         تولید استریم همگام (Synchronous Generator) پاسخ و مراجع.
@@ -332,6 +335,15 @@ class AnswerGenerator:
         chat_files = resolve_chat_files(chat_id, vector_db=getattr(self.retriever, "vector_db", None))
         has_chunks = self.retriever.vector_db.has_chunks(chat_id)
 
+        # استراتژی ۰: پاسخ فوق‌سریع و صمیمانه به احوال‌پرسی (بدون درگیر کردن پایگاه برداری یا مدل)
+        analysis = analyze_query(query=search_query, available_files=chat_files)
+        if analysis.intent == QueryIntent.CHITCHAT:
+            chitchat_msg = "سلام و درود! من دستیار هوشمند اسناد PDF شما هستم. اسناد خود را بارگذاری کرده و هر سوال، خلاصه، شمارش یا مقایسه‌ای که مد نظر دارید را بفرمایید."
+            for word in chitchat_msg.split(" "):
+                yield StreamChunk(type="token", content=word + " ").to_dict()
+            yield StreamChunk(type="sources", citations=[]).to_dict()
+            return
+
         # اگر هیچ سندی در این چت ثبت نشده باشد، سریعاً پیام هشدار ارسال می‌شود
         if not has_chunks and not chat_files:
             fallback_msg = self.prompt_builder.fallback_message
@@ -340,7 +352,15 @@ class AnswerGenerator:
             yield StreamChunk(type="sources", citations=[]).to_dict()
             return
 
-        analysis = analyze_query(query=search_query, available_files=chat_files)
+        # تشخیص سند هدف در صورت اشاره مستقیم کاربر (مثل «در سند اول...»)
+        effective_filter_docs = filter_doc_ids
+        if not effective_filter_docs and analysis.target_doc_indices and chat_files and analysis.intent not in (QueryIntent.COMPARISON, QueryIntent.SUMMARIZATION):
+            idx = analysis.target_doc_indices[0]
+            if 1 <= idx <= len(chat_files):
+                matched_f = chat_files[idx - 1]
+                target_id = matched_f.get("doc_id") or matched_f.get("filename")
+                if target_id:
+                    effective_filter_docs = [str(target_id)]
 
         # -------------------------------------------------------------
         # استراتژی ۱: تحلیل آماری و شمارش فراوانی کلمات (Deterministic Count)
@@ -524,12 +544,14 @@ class AnswerGenerator:
                 return
 
         # -------------------------------------------------------------
-        # استراتژی ۴: پرسش‌های فکتوال و نقطه‌ای عادی (Hybrid Dense+BM25)
+        # استراتژی ۴: پرسش‌های فکتوال و شمارشی/مراحلی (Hybrid Dense+BM25)
         # -------------------------------------------------------------
+        top_k = 7 if analysis.intent == QueryIntent.ENUMERATION else 4
         retrieval_res = self.retriever.retrieve(
             query_text=search_query,
             chat_id=chat_id,
-            filter_doc_ids=filter_doc_ids
+            top_k=top_k,
+            filter_doc_ids=effective_filter_docs
         )
 
         top_chunks = retrieval_res.get("top_chunks", [])
@@ -547,12 +569,13 @@ class AnswerGenerator:
         # ۳. آماده‌سازی استنادها از چانک‌های برتر
         citations = self._extract_citations(top_chunks)
 
-        # ۴. ساخت پیام‌های پرامپت استاندارد (استفاده از متن پرسش پالایش‌شده در صورت رفع غلط املایی)
+        # ۴. ساخت پیام‌های پرامپت استاندارد با ساختار XML و پشتیبانی از ریپلای
         effective_q = retrieval_res.get("effective_query", query)
         messages = self.prompt_builder.build_messages(
             query=effective_q,
             retriever_result_or_chunks=retrieval_res,
-            chat_history=chat_history
+            chat_history=chat_history,
+            reply_context=reply_context
         )
 
         # ۵. تولید توکن‌ها (مدل واقعی یا شبیه‌ساز)
@@ -600,7 +623,8 @@ class AnswerGenerator:
         chat_id: Union[int, str],
         filter_doc_ids: Optional[List[str]] = None,
         chat_history: Optional[List[Dict[str, str]]] = None,
-        retrieval_query: Optional[str] = None
+        retrieval_query: Optional[str] = None,
+        reply_context: Optional[str] = None
     ) -> AsyncGenerator[Dict[str, Any], None]:
         """
         تولید استریم ناهمگام (AsyncGenerator) هماهنگ با قرارداد رسمی فرانت‌اند با بک‌اند.
@@ -612,7 +636,8 @@ class AnswerGenerator:
             chat_id=chat_id,
             filter_doc_ids=filter_doc_ids,
             chat_history=chat_history,
-            retrieval_query=retrieval_query
+            retrieval_query=retrieval_query,
+            reply_context=reply_context
         )
 
         sentinel = object()
@@ -684,7 +709,8 @@ async def get_rag_response_stream(
     query: str,
     chat_id: int,
     filter_doc_ids: Optional[List[str]] = None,
-    chat_history: Optional[List[Dict[str, str]]] = None
+    chat_history: Optional[List[Dict[str, str]]] = None,
+    reply_context: Optional[str] = None
 ) -> AsyncGenerator[Dict[str, Any], None]:
     """
     تابع ارکستراتور اصلی تعریف‌شده در ui_backend_contract.md.
@@ -695,6 +721,7 @@ async def get_rag_response_stream(
         query=query,
         chat_id=chat_id,
         filter_doc_ids=filter_doc_ids,
-        chat_history=chat_history
+        chat_history=chat_history,
+        reply_context=reply_context
     ):
         yield chunk

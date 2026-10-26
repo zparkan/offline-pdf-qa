@@ -133,6 +133,7 @@ class Orchestrator:
         query: str,
         chat_id: Union[int, str],
         filter_doc_ids: Optional[List[str]] = None,
+        reply_context: Optional[str] = None,
     ) -> AsyncGenerator[Dict[str, Any], None]:
         """
         خط لوله پردازش سوال کاربر و تحویل زنده جریان پاسخ (Streaming).
@@ -140,7 +141,8 @@ class Orchestrator:
         مراحل:
           ۱. پاکسازی و نرمال‌سازی سوال کاربر.
           ۲. خواندن تاریخچه چت از SQLite مشکات.
-          ۳. بازیابی هیبرید + پرامپت استنادی + تولید استریم با مدل زبانی.
+          ۳. بازنویسی مشروط (فقط در صورت وجود ریپلای یا ضمایر ارجاعی صریح).
+          ۴. بازیابی هیبرید + پرامپت استنادی XML + تولید استریم با مدل زبانی.
         """
         # ۱. نرمال‌سازی متن سوال با ماژول فاطمه
         normalized_query = clean_persian_text(query).strip()
@@ -157,28 +159,29 @@ class Orchestrator:
             if m.get("content")
         ]
 
-        # ۳. بازنویسی هوشمند سوال فقط در صورت گفتگوی چندمرحله‌ای واقعی (Conversational Query Reformulation)
+        # ۳. بازنویسی هوشمند سوال فقط در صورت گفتگوی چندمرحله‌ای واقعی یا ریپلای
         retrieval_query = normalized_query
-        if chat_history and len(chat_history) >= 2:
-            try:
-                llm_instance = getattr(self.answer_generator, "llm", None) if getattr(self.answer_generator, "is_loaded", False) else None
-                candidate_query = self.prompt_builder.rewrite_conversational_query(
-                    current_query=normalized_query,
-                    chat_history=chat_history,
-                    llm=llm_instance
-                )
-                if candidate_query and candidate_query.strip():
-                    retrieval_query = candidate_query.strip()
-            except Exception:
-                retrieval_query = normalized_query
+        try:
+            llm_instance = getattr(self.answer_generator, "llm", None) if getattr(self.answer_generator, "is_loaded", False) else None
+            candidate_query = self.prompt_builder.rewrite_conversational_query(
+                current_query=normalized_query,
+                chat_history=chat_history,
+                llm=llm_instance,
+                reply_context=reply_context
+            )
+            if candidate_query and candidate_query.strip():
+                retrieval_query = candidate_query.strip()
+        except Exception:
+            retrieval_query = normalized_query
 
-        # ۴. دریافت استریم از پاسخ‌ساز RAG (جستجو با retrieval_query و پرامپت با normalized_query)
+        # ۴. دریافت استریم از پاسخ‌ساز RAG (جستجو با retrieval_query و پرامپت با normalized_query و reply_context)
         async for packet in self.answer_generator.get_rag_response_stream(
             query=normalized_query,
             chat_id=chat_id,
             filter_doc_ids=filter_doc_ids,
             chat_history=chat_history,
-            retrieval_query=retrieval_query
+            retrieval_query=retrieval_query,
+            reply_context=reply_context
         ):
             yield packet
 

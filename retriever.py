@@ -42,7 +42,7 @@ PERSIAN_STOPWORDS = {
     "لطفا", "لطفاً", "خواهش", "خواهشاً", "میخوام", "میخواهم", "خواستم", "داشتم",
     "میشه", "میشود", "میشوند", "هست", "هستند", "هستن", "نیست", "نیستند", "باشه", "باشد",
     "درباره", "مورد", "موردی", "راجع", "باب",
-    "کامل", "سریع", "جامع", "خلاصه", "مختصر", "چند", "چندتا", "چقدر"
+    "کامل", "سریع", "جامع", "خلاصه", "مختصر", "چقدر"
 }
 
 
@@ -373,24 +373,24 @@ class Retriever:
         # تعیین مقدار آستانه موثر (پیش‌فرض ۰.۵۸ از کانفیگ، یا مقدار ورودی متد)
         effective_min_similarity = min_similarity if min_similarity is not None else getattr(config, "RETRIEVAL_MIN_SIMILARITY", 0.58)
 
-        # منطق اعتبارسنجی هوشمند ارتباط پاسخ (Multi-Level Hybrid Relevance Verification):
-        # ۱. در صورت وجود تطابق واژگانی (BM25)، آستانه ملایم‌تر (effective_min_similarity، پیش‌فرض 0.58) یا شباهت معنادار با کلیدواژه (0.42) اعمال می‌شود.
-        # ۲. در صورت عدم تطابق حتی یک کلیدواژه (zero BM25 match)، مدل امبدینگ نیازمند شباهت معنایی قوی‌تر (حداقل 0.75) است تا از مثبت کاذب ناشی از کف کسینوسی جلوگیری شود.
+        # منطق اعتبارسنجی ارتباط پاسخ (Relevance Verification):
+        # ۱. در صورت وجود تطابق واژگانی (BM25)، حداقل شباهت 0.55 کافی است.
+        # ۲. در صورت عدم تطابق کلمه کلیدی، مدل امبدینگ به اثبات قوی‌تری (حداقل 0.72) نیاز دارد تا مثبت کاذب ناشی از کف کسینوسی رخ ندهد.
         # ۳. افت نسبی نمره (Score Gap): در صورت وجود فاصله معنادار چانک اول از بقیه چانک‌ها (بیش از 0.08)
         sim_scores = [c["similarity"] for c in top_chunks if c.get("similarity") is not None]
         has_score_gap = False
-        if len(sim_scores) >= 2 and max_similarity >= 0.60:
+        if len(sim_scores) >= 2 and max_similarity >= 0.65:
             has_score_gap = (max_similarity - sim_scores[1]) >= 0.08
 
         if has_bm25_match:
-            has_relevant_context = (max_similarity >= effective_min_similarity) or has_score_gap
+            has_relevant_context = (max_similarity >= 0.55) or has_score_gap
         else:
             # سوال بدون تطابق کلمه کلیدی، نیاز به اثبات معنایی قوی دارد
-            no_lexical_threshold = max(0.68, effective_min_similarity)
+            no_lexical_threshold = max(0.72, effective_min_similarity)
             has_relevant_context = (max_similarity >= no_lexical_threshold) or has_score_gap
 
-        # کف ایمنی قطعی (زیر 0.50 قطعاً نامربوط تلقی می‌شود تا مدل دچار توهم نشود)
-        if max_similarity < 0.50:
+        # کف ایمنی قطعی (زیر 0.52 قطعاً نامربوط تلقی می‌شود تا مدل دچار توهم نشود)
+        if max_similarity < 0.52:
             has_relevant_context = False
 
         total_elapsed = (time.perf_counter() - start_time) * 1000

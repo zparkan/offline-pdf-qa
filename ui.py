@@ -367,7 +367,33 @@ def chat_page(chat_id: int):
 
             empty_placeholder = None
 
-            def append_bubble(role: str, content: str, time_str: str = None):
+            reply_state = {'text': None}
+
+            reply_bar = ui.row().classes('w-full px-4 py-1.5 bg-slate-900/90 border-t border-sky-500/30 items-center justify-between text-xs text-sky-400')
+            reply_bar.set_visibility(False)
+            with reply_bar:
+                with ui.row().classes('items-center gap-2 overflow-hidden flex-grow'):
+                    ui.icon('reply', size='16px').classes('text-sky-400')
+                    reply_preview_label = ui.label('').classes('truncate text-slate-300 font-medium')
+                def cancel_reply():
+                    reply_state['text'] = None
+                    reply_bar.set_visibility(False)
+                ui.button(icon='close', on_click=cancel_reply).props('flat round size=xs color=grey').classes('hover:text-red-400')
+
+            def set_reply(target_text: str):
+                cleaned = target_text.strip()
+                if not cleaned:
+                    return
+                reply_state['text'] = cleaned
+                preview = cleaned[:75] + ('...' if len(cleaned) > 75 else '')
+                reply_preview_label.text = f'در پاسخ به: {preview}'
+                reply_bar.set_visibility(True)
+                try:
+                    text_input.run_method('focus')
+                except Exception:
+                    pass
+
+            def append_bubble(role: str, content: str, time_str: str = None, reply_to_text: str = None):
                 nonlocal empty_placeholder
                 if empty_placeholder is not None:
                     try:
@@ -384,9 +410,14 @@ def chat_page(chat_id: int):
                 t_str = time_str or (db.get_current_local_time_str().split()[1][:5] if hasattr(db, 'get_current_local_time_str') else '')
 
                 with messages_container:
-                    with ui.row().classes(f'w-full {align_cls} my-1 items-start gap-2.5'):
+                    with ui.row().classes(f'w-full {align_cls} my-1 items-start gap-2.5 group'):
                         if is_user:
                             with ui.column().classes(f'max-w-[75%] {bg_cls} p-3.5 rounded-2xl shadow-md'):
+                                if reply_to_text:
+                                    rep_snip = reply_to_text[:65] + ('...' if len(reply_to_text) > 65 else '')
+                                    with ui.row().classes('items-center gap-1.5 border-r-2 border-sky-300 pr-2 mb-2 bg-sky-700/50 p-1.5 rounded-lg text-xs text-sky-100 w-full overflow-hidden'):
+                                        ui.icon('reply', size='12px').classes('opacity-80')
+                                        ui.label(rep_snip).classes('truncate')
                                 ui.label(f"\u200f{content}").classes('text-sm leading-relaxed whitespace-pre-wrap text-right').style('direction: rtl; unicode-bidi: plaintext;')
                                 if t_str:
                                     ui.label(t_str).classes('text-[10px] opacity-60 self-end mt-1')
@@ -395,8 +426,10 @@ def chat_page(chat_id: int):
                             ui.label(avatar).classes(f'text-base p-1.5 {avatar_bg} rounded-full flex-shrink-0')
                             with ui.column().classes(f'max-w-[75%] {bg_cls} p-3.5 rounded-2xl shadow-md'):
                                 ui.label(f"\u200f{content}").classes('text-sm leading-relaxed whitespace-pre-wrap text-right').style('direction: rtl; unicode-bidi: plaintext;')
-                                if t_str:
-                                    ui.label(t_str).classes('text-[10px] opacity-60 self-end mt-1')
+                                with ui.row().classes('w-full items-center justify-between mt-1 pt-1 border-t border-slate-700/40'):
+                                    ui.button(icon='reply', on_click=lambda t=content: set_reply(t)).props('flat round size=xs color=grey').classes('opacity-50 hover:opacity-100 transition-opacity').tooltip('پاسخ (ریپلای) به این پیام')
+                                    if t_str:
+                                        ui.label(t_str).classes('text-[10px] opacity-60')
 
             def init_messages():
                 messages = db.get_messages(chat_id)
@@ -426,6 +459,10 @@ def chat_page(chat_id: int):
                     if not val:
                         return
 
+                    # استخراج زمینه ریپلای و پاکسازی نوار ریپلای
+                    current_reply_text = reply_state['text']
+                    cancel_reply()
+
                     text_input.value = ''
                     send_btn.disable()
                     text_input.disable()
@@ -433,9 +470,9 @@ def chat_page(chat_id: int):
                     # با ارسال پیام جدید، اسکرول را پایین می‌بریم و ردیابی را فعال می‌کنیم
                     is_user_at_bottom = True
 
-                    # ثبت پیام در دیتابیس و اضافه کردن حباب کاربر بدون بازسازی کل صفحه
+                    # ثبت پیام در دیتابیس و اضافه کردن حباب کاربر با نماد ریپلای
                     db.add_message(chat_id, role='user', content=val)
-                    append_bubble('user', val)
+                    append_bubble('user', val, reply_to_text=current_reply_text)
                     messages_scroll.scroll_to(percent=100)
 
                     files = db.get_files(chat_id)
@@ -461,14 +498,18 @@ def chat_page(chat_id: int):
 
                     # ساخت حباب پیام استریم با کاراکتر RLM و تنظیمات BiDi
                     with messages_container:
-                        with ui.row().classes('w-full justify-start my-1 items-start gap-2.5'):
+                        with ui.row().classes('w-full justify-start my-1 items-start gap-2.5 group'):
                             ui.label('🤖').classes('text-base p-1.5 bg-slate-800 border border-slate-700 rounded-full flex-shrink-0')
                             with ui.column().classes('max-w-[75%] bg-slate-800 border border-slate-700 text-slate-100 rounded-bl-none p-3.5 rounded-2xl shadow-md'):
                                 response_label = ui.label('\u200f').classes('text-sm leading-relaxed whitespace-pre-wrap text-right').style('direction: rtl; unicode-bidi: plaintext;')
+                                footer_row = ui.row().classes('w-full items-center justify-between mt-1 pt-1 border-t border-slate-700/40')
+                                with footer_row:
+                                    reply_action_btn = ui.button(icon='reply').props('flat round size=xs color=grey').classes('opacity-50 hover:opacity-100 transition-opacity').tooltip('پاسخ (ریپلای) به این پیام')
+                                    time_label = ui.label('').classes('text-[10px] opacity-60')
 
                     messages_scroll.scroll_to(percent=100)
 
-                    # قفل ایمن و دریافت استریم پاسخ از ارکستراتور
+                    # قفل ایمن و دریافت استریم پاسخ از ارکستراتور با زمینه ریپلای
                     try:
                         text_input.props('loading')
                         text_input.placeholder = "در حال تولید پاسخ هوشمند..."
@@ -478,7 +519,7 @@ def chat_page(chat_id: int):
                         citations_list = []
                         last_scroll_time = 0.0
 
-                        async for packet in orch.ask_question_stream(val, chat_id):
+                        async for packet in orch.ask_question_stream(val, chat_id, reply_context=current_reply_text):
                             p_type = packet.get("type")
                             if p_type == "token":
                                 tok = packet.get("content", "")
@@ -507,6 +548,11 @@ def chat_page(chat_id: int):
                                     sources_text += f"- 📄 سند: `{fname}` (صفحه {pnum})\n"
                             full_response += sources_text
                             response_label.text = f"\u200f{full_response}"
+
+                        # فعال‌سازی ریپلای برای پاسخ تازه تولیدشده
+                        captured_res = full_response
+                        reply_action_btn.on_click(lambda: set_reply(captured_res))
+                        time_label.text = db.get_current_local_time_str().split()[1][:5] if hasattr(db, 'get_current_local_time_str') else ''
 
                         if is_user_at_bottom:
                             messages_scroll.scroll_to(percent=100)
